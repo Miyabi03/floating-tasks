@@ -92,8 +92,10 @@ pub fn run() {
         .expect("error while building tauri application");
 
     app.run(|app_handle, event| {
+        #[cfg(target_os = "macos")]
         if let RunEvent::Reopen { .. } = event {
             show_window(app_handle);
         }
+        let _ = (app_handle, event);
     });
 }
