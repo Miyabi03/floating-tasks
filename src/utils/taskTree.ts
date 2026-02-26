@@ -105,24 +105,32 @@ function isSubtreeCompleted(allTasks: readonly Task[], taskId: string): boolean 
   return children.every((c) => isSubtreeCompleted(allTasks, c.id));
 }
 
+function isTodaySection(task: Task): boolean {
+  return task.calendarEventId?.startsWith("gcal-today-") === true && task.parentId === null;
+}
+
 /**
  * Stable-sort siblings so that fully-completed subtrees sink to the bottom.
+ * The "Today" section is always pinned to the top.
  * Preserves relative order within each group.
  */
 export function sortByCompletion(
   siblings: readonly Task[],
   allTasks: readonly Task[],
 ): readonly Task[] {
+  const pinned: Task[] = [];
   const incomplete: Task[] = [];
   const complete: Task[] = [];
   for (const task of siblings) {
-    if (isSubtreeCompleted(allTasks, task.id)) {
+    if (isTodaySection(task)) {
+      pinned.push(task);
+    } else if (isSubtreeCompleted(allTasks, task.id)) {
       complete.push(task);
     } else {
       incomplete.push(task);
     }
   }
-  return [...incomplete, ...complete];
+  return [...pinned, ...incomplete, ...complete];
 }
 
 export function indentTask(tasks: readonly Task[], taskId: string): readonly Task[] {
