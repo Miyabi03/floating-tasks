@@ -1,0 +1,13 @@
+.inline-editor {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--input-bg);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 2px 6px;
+  line-height: 1.35;
+  min-width: 0;
+  outline: none;
+  font-family: inherit;
+}

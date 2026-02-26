@@ -1,0 +1,51 @@
+.interval-picker {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.interval-picker-input {
+  width: 40px;
+  height: 28px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  text-align: center;
+  padding: 0 4px;
+  outline: none;
+  transition: border-color 0.15s;
+  -moz-appearance: textfield;
+}
+
+.interval-picker-input::-webkit-outer-spin-button,
+.interval-picker-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.interval-picker-input:focus {
+  border-color: var(--accent);
+}
+
+.interval-picker-unit {
+  height: 28px;
+  padding: 0 10px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+
+.interval-picker-unit:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}

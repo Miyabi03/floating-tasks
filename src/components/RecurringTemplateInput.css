@@ -1,0 +1,58 @@
+.recurring-input {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.recurring-input-row {
+  display: flex;
+  gap: 6px;
+}
+
+.recurring-input-field {
+  flex: 1;
+  height: 32px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  padding: 0 10px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.recurring-input-field::placeholder {
+  color: var(--text-tertiary);
+}
+
+.recurring-input-field:focus {
+  border-color: var(--accent);
+}
+
+.recurring-input-add {
+  height: 32px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.recurring-input-add:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.recurring-input-add:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

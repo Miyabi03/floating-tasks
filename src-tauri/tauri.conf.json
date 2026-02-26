@@ -1,0 +1,42 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicedoc/static/main/tauri/tauri.schema.json",
+  "productName": "Floating Tasks",
+  "version": "0.1.0",
+  "identifier": "com.floating-tasks.app",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "macOSPrivateApi": true,
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Floating Tasks",
+        "width": 320,
+        "height": 480,
+        "resizable": true,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "shadow": false,
+        "minWidth": 260,
+        "minHeight": 300
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

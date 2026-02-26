@@ -1,0 +1,113 @@
+/* Theme variables */
+:root,
+[data-theme="dark"] {
+  --bg: rgba(28, 28, 30, 0.92);
+  --surface: rgba(44, 44, 46, 0.9);
+  --text-primary: #f5f5f7;
+  --text-secondary: #a1a1a6;
+  --text-tertiary: #636366;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --hover: rgba(255, 255, 255, 0.05);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --accent: #34c759;
+  --accent-subtle: rgba(52, 199, 89, 0.1);
+}
+
+[data-theme="light"] {
+  --bg: rgba(255, 255, 255, 0.92);
+  --surface: rgba(242, 242, 247, 0.9);
+  --text-primary: #1c1c1e;
+  --text-secondary: #636366;
+  --text-tertiary: #aeaeb2;
+  --border: rgba(0, 0, 0, 0.06);
+  --border-strong: rgba(0, 0, 0, 0.18);
+  --hover: rgba(0, 0, 0, 0.03);
+  --input-bg: rgba(0, 0, 0, 0.03);
+  --accent: #30a14e;
+  --accent-subtle: rgba(48, 161, 78, 0.08);
+}
+
+/* Reset */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  background: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* App container */
+.app {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+/* Loading state */
+.app-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+/* Click bubble effect */
+.click-bubble {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.3), inset 0 0 4px 1px rgba(255, 255, 255, 0.15);
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.2),
+    transparent 60%
+  );
+  animation: bubble-float 0.6s ease-out forwards;
+}
+
+@keyframes bubble-float {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0.9;
+  }
+  40% {
+    opacity: 0.7;
+    transform: translate(
+      calc(-50% + var(--drift-x) * 0.4),
+      calc(-50% + var(--drift-y) * 0.4)
+    ) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(
+      calc(-50% + var(--drift-x)),
+      calc(-50% + var(--drift-y))
+    ) scale(0.6);
+  }
+}

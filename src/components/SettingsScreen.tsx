@@ -1,0 +1,67 @@
+import type { IntervalUnit, RecurringTaskTemplate } from "../types/recurring";
+import { RecurringTemplateInput } from "./RecurringTemplateInput";
+import { RecurringTemplateItem } from "./RecurringTemplateItem";
+import "./SettingsScreen.css";
+
+interface SettingsScreenProps {
+  readonly templates: readonly RecurringTaskTemplate[];
+  readonly onAdd: (text: string, intervalValue: number, intervalUnit: IntervalUnit) => void;
+  readonly onUpdate: (
+    id: string,
+    updates: Partial<Pick<RecurringTaskTemplate, "text" | "intervalValue" | "intervalUnit" | "enabled">>,
+  ) => void;
+  readonly onDelete: (id: string) => void;
+  readonly onAddSubTask: (templateId: string, parentSubId: string | null, text: string) => void;
+  readonly onDeleteSubTask: (templateId: string, subTaskId: string) => void;
+  readonly onUpdateSubTask: (templateId: string, subTaskId: string, text: string) => void;
+  readonly onMove: (id: string, direction: "up" | "down") => void;
+  readonly onClose: () => void;
+}
+
+export function SettingsScreen({
+  templates,
+  onAdd,
+  onUpdate,
+  onDelete,
+  onAddSubTask,
+  onDeleteSubTask,
+  onUpdateSubTask,
+  onMove,
+  onClose,
+}: SettingsScreenProps) {
+  return (
+    <div className="settings-screen">
+      <div className="settings-header" data-tauri-drag-region>
+        <span className="settings-title" data-tauri-drag-region>Recurring Tasks</span>
+        <button className="settings-close" onClick={onClose} title="Close">
+          {"\u2715"}
+        </button>
+      </div>
+
+      <RecurringTemplateInput onAdd={onAdd} />
+
+      <div className="settings-list">
+        {templates.length === 0 ? (
+          <div className="settings-empty">
+            No recurring tasks yet
+          </div>
+        ) : (
+          templates.map((tpl, idx) => (
+            <RecurringTemplateItem
+              key={tpl.id}
+              template={tpl}
+              onUpdate={onUpdate}
+              onDelete={onDelete}
+              onAddSubTask={onAddSubTask}
+              onDeleteSubTask={onDeleteSubTask}
+              onUpdateSubTask={onUpdateSubTask}
+              onMove={onMove}
+              isFirst={idx === 0}
+              isLast={idx === templates.length - 1}
+            />
+          ))
+        )}
+      </div>
+    </div>
+  );
+}

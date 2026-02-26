@@ -1,0 +1,48 @@
+.task-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.task-input-wrapper--compact {
+  padding: 4px 0;
+  border-bottom: none;
+}
+
+.task-input-icon {
+  color: var(--text-tertiary);
+  font-size: 16px;
+  font-weight: 400;
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+}
+
+.task-input-wrapper--compact .task-input-icon {
+  font-size: 14px;
+  width: 16px;
+}
+
+.task-input {
+  flex: 1;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+}
+
+.task-input-wrapper--compact .task-input {
+  height: 24px;
+  font-size: 12px;
+}
+
+.task-input::placeholder {
+  color: var(--text-tertiary);
+}
