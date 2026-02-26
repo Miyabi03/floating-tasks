@@ -1,4 +1,6 @@
 import { useRef, useEffect, useState } from "react";
+import { getCurrentWindow, currentMonitor } from "@tauri-apps/api/window";
+import { LogicalPosition } from "@tauri-apps/api/dpi";
 import { TitleBar } from "./components/TitleBar";
 import { TaskInput } from "./components/TaskInput";
 import { TaskList } from "./components/TaskList";
@@ -52,6 +54,23 @@ export function App() {
   } = useRecurringTemplates();
 
   useRecurringReset(tasks, templates, isLoaded, templatesLoaded, resetTasks);
+
+  useEffect(() => {
+    const positionWindow = async () => {
+      const monitor = await currentMonitor();
+      if (!monitor) return;
+      const win = getCurrentWindow();
+      const factor = monitor.scaleFactor;
+      const screenW = monitor.size.width / factor;
+      const winSize = await win.outerSize();
+      const winW = winSize.width / factor;
+      const padding = 20;
+      const x = screenW - winW - padding;
+      const y = padding;
+      await win.setPosition(new LogicalPosition(x, y));
+    };
+    positionWindow();
+  }, []);
 
   useEffect(() => {
     if (events.length > 0) {
