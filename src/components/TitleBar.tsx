@@ -21,6 +21,13 @@ export function TitleBar({ theme, onToggleTheme, dailyMessage, onOpenSettings }:
         </span>
         <div className="title-bar-controls">
           <button
+            className="title-bar-btn reload-btn"
+            onClick={() => window.location.reload()}
+            title="Reload"
+          >
+            {"\u21BB"}
+          </button>
+          <button
             className="title-bar-btn settings-btn"
             onClick={onOpenSettings}
             title="Settings"
