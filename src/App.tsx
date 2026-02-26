@@ -57,17 +57,22 @@ export function App() {
 
   useEffect(() => {
     const positionWindow = async () => {
-      const monitor = await currentMonitor();
-      if (!monitor) return;
-      const win = getCurrentWindow();
-      const factor = monitor.scaleFactor;
-      const screenW = monitor.size.width / factor;
-      const winSize = await win.outerSize();
-      const winW = winSize.width / factor;
-      const padding = 20;
-      const x = screenW - winW - padding;
-      const y = padding;
-      await win.setPosition(new LogicalPosition(x, y));
+      if (!("__TAURI__" in window)) return;
+      try {
+        const monitor = await currentMonitor();
+        if (!monitor) return;
+        const win = getCurrentWindow();
+        const factor = monitor.scaleFactor;
+        const screenW = monitor.size.width / factor;
+        const winSize = await win.outerSize();
+        const winW = winSize.width / factor;
+        const padding = 20;
+        const x = screenW - winW - padding;
+        const y = padding;
+        await win.setPosition(new LogicalPosition(x, y));
+      } catch {
+        // Ignore positioning errors (e.g. Tauri API not ready)
+      }
     };
     positionWindow();
   }, []);
