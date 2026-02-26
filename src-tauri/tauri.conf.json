@@ -7,7 +7,7 @@
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "",
-    "frontendDist": "https://floating-tasks.vercel.app"
+    "frontendDist": "https://floating-tasks-bay.vercel.app"
   },
   "app": {
     "macOSPrivateApi": true,
