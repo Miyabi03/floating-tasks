@@ -111,7 +111,8 @@ function isTodaySection(task: Task): boolean {
 
 /**
  * Stable-sort siblings so that fully-completed subtrees sink to the bottom.
- * The "Today" section is always pinned to the top.
+ * The "Today" section is pinned to the top unless all its tasks are completed,
+ * in which case it sinks to the bottom with other completed subtrees.
  * Preserves relative order within each group.
  */
 export function sortByCompletion(
@@ -123,7 +124,11 @@ export function sortByCompletion(
   const complete: Task[] = [];
   for (const task of siblings) {
     if (isTodaySection(task)) {
-      pinned.push(task);
+      if (isSubtreeCompleted(allTasks, task.id)) {
+        complete.push(task);
+      } else {
+        pinned.push(task);
+      }
     } else if (isSubtreeCompleted(allTasks, task.id)) {
       complete.push(task);
     } else {

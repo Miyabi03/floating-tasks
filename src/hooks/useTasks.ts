@@ -63,10 +63,42 @@ export function useTasks() {
 
       const newCompleted = !target.completed;
       const descendantIds = new Set(getDescendantIds(prev, id));
+      const idsToUpdate = new Set<string>([id, ...descendantIds]);
+
+      if (newCompleted) {
+        // Auto-complete ancestors whose children are all now completed
+        const completedMap = new Map(prev.map((t) => [t.id, t.completed]));
+        for (const did of idsToUpdate) {
+          completedMap.set(did, true);
+        }
+        let currentId = target.parentId;
+        while (currentId) {
+          const parent = prev.find((t) => t.id === currentId);
+          if (!parent) break;
+          const children = prev.filter((t) => t.parentId === currentId);
+          if (children.every((c) => completedMap.get(c.id) === true)) {
+            idsToUpdate.add(currentId);
+            completedMap.set(currentId, true);
+            currentId = parent.parentId;
+          } else {
+            break;
+          }
+        }
+      } else {
+        // Uncomplete all completed ancestors
+        let currentId = target.parentId;
+        while (currentId) {
+          const parent = prev.find((t) => t.id === currentId);
+          if (!parent) break;
+          if (parent.completed) {
+            idsToUpdate.add(currentId);
+          }
+          currentId = parent.parentId;
+        }
+      }
 
       return prev.map((task) => {
-        if (task.id === id) return { ...task, completed: newCompleted };
-        if (descendantIds.has(task.id)) return { ...task, completed: newCompleted };
+        if (idsToUpdate.has(task.id)) return { ...task, completed: newCompleted };
         return task;
       });
     });
