@@ -6,12 +6,12 @@
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "pnpm build",
-    "frontendDist": "../dist"
+    "beforeBuildCommand": "",
+    "frontendDist": "https://floating-tasks.vercel.app"
   },
   "app": {
     "macOSPrivateApi": true,
-    "withGlobalTauri": false,
+    "withGlobalTauri": true,
     "windows": [
       {
         "label": "main",
