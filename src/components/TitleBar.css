@@ -45,8 +45,14 @@
   color: var(--text-primary);
 }
 
+.close-btn {
+  background: rgba(239, 68, 68, 0.85);
+  color: #fff;
+  font-weight: 700;
+}
+
 .close-btn:hover {
-  background: rgba(239, 68, 68, 0.8);
+  background: rgba(220, 38, 38, 1);
   color: #fff;
 }
 

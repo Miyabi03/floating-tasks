@@ -39,7 +39,7 @@ export function TitleBar({ theme, onToggleTheme, dailyMessage, onOpenSettings }:
             onClick={handleClose}
             title="Hide (Cmd+Shift+T)"
           >
-            \u2715
+            {"\u2715"}
           </button>
         </div>
       </div>
