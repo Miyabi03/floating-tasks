@@ -114,6 +114,17 @@ export function useTasks() {
 
   const syncCalendarEvents = useCallback(
     (events: readonly CalendarEvent[]) => {
+      // Sort events by start time (all-day first, then chronological)
+      const sortedEvents = [...events].sort((a, b) => {
+        if (a.isAllDay !== b.isAllDay) return a.isAllDay ? -1 : 1;
+        return a.start.localeCompare(b.start);
+      });
+
+      // Build a map of event ID → sort index for reordering tasks
+      const eventSortOrder = new Map(
+        sortedEvents.map((e, i) => [`gcal-evt-${e.id}`, i]),
+      );
+
       setTasks((prev) => {
         const todayStr = new Date().toISOString().slice(0, 10);
         const todaySectionId = `gcal-today-${todayStr}`;
@@ -162,7 +173,7 @@ export function useTasks() {
         );
 
         const incomingIds = new Set(
-          events.map((e) => `gcal-evt-${e.id}`),
+          sortedEvents.map((e) => `gcal-evt-${e.id}`),
         );
 
         // Remove tasks for events that no longer exist
@@ -176,7 +187,7 @@ export function useTasks() {
         );
 
         // Upsert event tasks
-        for (const event of events) {
+        for (const event of sortedEvents) {
           const eventTaskId = `gcal-evt-${event.id}`;
           const text = buildEventText(event);
           const existing = existingByEventId.get(eventTaskId);
@@ -202,7 +213,29 @@ export function useTasks() {
           }
         }
 
-        return next;
+        // Reorder calendar event tasks by start time
+        const calendarTasks: Task[] = [];
+        const otherTasks: Task[] = [];
+        for (const t of next) {
+          if (t.parentId === todaySectionId && t.calendarEventId?.startsWith("gcal-evt-")) {
+            calendarTasks.push(t);
+          } else {
+            otherTasks.push(t);
+          }
+        }
+        calendarTasks.sort((a, b) => {
+          const orderA = eventSortOrder.get(a.calendarEventId!) ?? Infinity;
+          const orderB = eventSortOrder.get(b.calendarEventId!) ?? Infinity;
+          return orderA - orderB;
+        });
+
+        // Re-insert sorted calendar tasks right after the today section
+        const sectionIdx = otherTasks.findIndex((t) => t.id === todaySectionId);
+        return [
+          ...otherTasks.slice(0, sectionIdx + 1),
+          ...calendarTasks,
+          ...otherTasks.slice(sectionIdx + 1),
+        ];
       });
     },
     [],
