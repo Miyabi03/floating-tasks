@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floating Tasks</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+      line-height: 1.8;
+      color: #1a1a2e;
+      background-color: #fafafa;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+    }
+
+    .container {
+      max-width: 560px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .app-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #4361ee, #7209b7);
+      border-radius: 20px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(67, 97, 238, 0.3);
+    }
+
+    .app-icon svg {
+      width: 40px;
+      height: 40px;
+      fill: #fff;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .tagline {
+      font-size: 1.05rem;
+      color: #666;
+      margin-bottom: 2rem;
+    }
+
+    .description {
+      font-size: 0.95rem;
+      color: #444;
+      margin-bottom: 2.5rem;
+      line-height: 1.9;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+      text-align: left;
+    }
+
+    .feature {
+      background: #fff;
+      border: 1px solid #e8e8e8;
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+    }
+
+    .feature-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #4361ee;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .feature-text {
+      font-size: 0.875rem;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .links a {
+      color: #4361ee;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .links a:hover {
+      border-bottom-color: #4361ee;
+    }
+
+    footer {
+      border-top: 1px solid #e8e8e8;
+      padding: 2rem 0;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #999;
+    }
+
+    @media (max-width: 500px) {
+      .features {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="container">
+      <div class="app-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 3h-1V1h-2v2H8V1H6v2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm-8 4H7v2h2v-2zm4 0h-2v2h2v-2z"/>
+        </svg>
+      </div>
+
+      <h1>Floating Tasks</h1>
+      <p class="tagline">カレンダーを、いつも目の前に。</p>
+
+      <p class="description">
+        Floating Tasksは、Googleカレンダーの予定を画面上にフローティングウィンドウとして常時表示するデスクトップアプリです。作業中でも次の予定を見逃しません。
+      </p>
+
+      <div class="features">
+        <div class="feature">
+          <div class="feature-title">Always on Top</div>
+          <p class="feature-text">他のウィンドウの上に常時表示。予定を見逃しません。</p>
+        </div>
+        <div class="feature">
+          <div class="feature-title">Google連携</div>
+          <p class="feature-text">Googleカレンダーと読み取り専用で安全に連携します。</p>
+        </div>
+        <div class="feature">
+          <div class="feature-title">プライバシー重視</div>
+          <p class="feature-text">データはすべてローカル保存。外部送信は一切なし。</p>
+        </div>
+        <div class="feature">
+          <div class="feature-title">軽量設計</div>
+          <p class="feature-text">Tauriベースの軽量なネイティブアプリケーション。</p>
+        </div>
+      </div>
+
+      <div class="links">
+        <a href="./privacy-policy.html">プライバシーポリシー</a>
+        <a href="https://floating-tasks-bay.vercel.app">アプリを開く</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2026 Floating Tasks. All rights reserved.
+  </footer>
+</body>
+</html>

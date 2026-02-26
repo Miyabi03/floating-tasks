@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>プライバシーポリシー - Floating Tasks</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+      line-height: 1.8;
+      color: #1a1a2e;
+      background-color: #fafafa;
+    }
+
+    header {
+      background-color: #fff;
+      border-bottom: 1px solid #e8e8e8;
+      padding: 1rem 0;
+    }
+
+    header nav {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    header a {
+      color: #1a1a2e;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    header a:hover {
+      color: #4361ee;
+    }
+
+    header span {
+      color: #999;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.01em;
+    }
+
+    .last-updated {
+      font-size: 0.875rem;
+      color: #777;
+      margin-bottom: 2.5rem;
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-top: 2.5rem;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid #4361ee;
+      display: inline-block;
+    }
+
+    h2::after {
+      content: "";
+      display: block;
+    }
+
+    p {
+      margin-bottom: 1rem;
+      color: #333;
+    }
+
+    ul {
+      margin: 0.5rem 0 1rem 1.5rem;
+      color: #333;
+    }
+
+    li {
+      margin-bottom: 0.4rem;
+    }
+
+    .intro {
+      background-color: #f0f4ff;
+      border-left: 4px solid #4361ee;
+      padding: 1rem 1.25rem;
+      border-radius: 0 6px 6px 0;
+      margin-bottom: 2rem;
+    }
+
+    .intro p {
+      margin-bottom: 0;
+      font-size: 0.95rem;
+    }
+
+    a {
+      color: #4361ee;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    section {
+      margin-bottom: 0.5rem;
+    }
+
+    footer {
+      border-top: 1px solid #e8e8e8;
+      padding: 2rem 0;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #999;
+    }
+
+    @media (max-width: 600px) {
+      main {
+        padding: 2rem 1rem 3rem;
+      }
+
+      h1 {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="./index.html">Floating Tasks</a>
+      <span>/</span>
+      <span>プライバシーポリシー</span>
+    </nav>
+  </header>
+
+  <main>
+    <h1>プライバシーポリシー</h1>
+    <p class="last-updated">最終更新日: 2026年2月27日</p>
+
+    <div class="intro">
+      <p>Floating Tasks（以下「本アプリ」）は、ユーザーのプライバシーを尊重し、個人情報の保護に努めています。本ポリシーでは、本アプリにおけるデータの取り扱いについて説明します。</p>
+    </div>
+
+    <section>
+      <h2>1. 本アプリについて</h2>
+      <p>Floating Tasksは、Googleカレンダーの予定を画面上に常時表示するデスクトップアプリケーションです。画面の最前面にフローティングウィンドウとして表示され、スケジュール管理をサポートします。</p>
+    </section>
+
+    <section>
+      <h2>2. 取得する情報</h2>
+      <p>本アプリは、以下の情報を取得します。</p>
+      <ul>
+        <li><strong>Googleアカウント情報:</strong> Google OAuthによるサインイン時に、認証に必要な基本的なアカウント情報（メールアドレス、表示名など）を取得します。</li>
+        <li><strong>Googleカレンダーのイベント情報:</strong> <code>calendar.readonly</code> スコープを使用し、カレンダーの予定を読み取り専用で取得します。本アプリがカレンダーの内容を変更・削除することはありません。</li>
+        <li><strong>認証トークン:</strong> Google OAuthの認証トークン（アクセストークン・リフレッシュトークン）を取得します。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>3. 情報の利用目的</h2>
+      <p>取得した情報は、以下の目的にのみ使用します。</p>
+      <ul>
+        <li>Googleカレンダーの予定をアプリ内に表示するため</li>
+        <li>Googleアカウントの認証状態を維持するため</li>
+      </ul>
+      <p>上記以外の目的で利用することはありません。</p>
+    </section>
+
+    <section>
+      <h2>4. データの保存</h2>
+      <p>本アプリは、すべてのデータをユーザーのローカルデバイス上にのみ保存します。</p>
+      <ul>
+        <li>認証トークンは、お使いのデバイスのローカルストレージに保存されます。</li>
+        <li>サーバーへのデータ送信や外部データベースへの保存は一切行いません。</li>
+        <li>カレンダーのイベント情報は表示目的でのみ一時的に保持され、永続的に保存されることはありません。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>5. 第三者サービス</h2>
+      <p>本アプリは、以下の第三者サービスを利用しています。</p>
+      <ul>
+        <li>
+          <strong>Google OAuth / Google Calendar API:</strong>
+          ユーザー認証およびカレンダーデータの取得に使用します。Googleのデータ取り扱いについては、<a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Googleプライバシーポリシー</a>をご確認ください。
+        </li>
+        <li>
+          <strong>Vercel:</strong>
+          フロントエンドのホスティングに使用しています。Vercelのデータ取り扱いについては、<a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Vercelプライバシーポリシー</a>をご確認ください。
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>6. データの収集・追跡について</h2>
+      <p>本アプリは、以下を行いません。</p>
+      <ul>
+        <li>アナリティクスやトラッキングツールの使用</li>
+        <li>広告の表示または広告目的でのデータ収集</li>
+        <li>ユーザーの行動ログの収集・送信</li>
+        <li>個人情報の第三者への販売・共有</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>7. ユーザーの権利</h2>
+      <p>ユーザーは、以下の権利を有します。</p>
+      <ul>
+        <li><strong>アクセス権の取り消し:</strong> <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">Googleアカウントの権限設定</a>から、本アプリのアクセス権をいつでも取り消すことができます。</li>
+        <li><strong>データの削除:</strong> 本アプリをアンインストールすることで、ローカルに保存されたすべてのデータ（認証トークンを含む）が削除されます。</li>
+        <li><strong>利用の停止:</strong> いつでも本アプリの利用を停止することができます。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>8. セキュリティ</h2>
+      <p>本アプリは、ユーザーデータの保護のために以下の対策を講じています。</p>
+      <ul>
+        <li>Google OAuthによる安全な認証フロー</li>
+        <li>読み取り専用スコープのみの使用（カレンダーデータの変更不可）</li>
+        <li>すべてのデータをローカルに保持（外部送信なし）</li>
+        <li>HTTPS通信の使用</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>9. ポリシーの変更</h2>
+      <p>本ポリシーの内容は、必要に応じて変更されることがあります。重要な変更がある場合は、本ページにて通知いたします。</p>
+    </section>
+
+    <section>
+      <h2>10. お問い合わせ</h2>
+      <p>本ポリシーに関するご質問やお問い合わせは、以下のメールアドレスまでご連絡ください。</p>
+      <p><a href="mailto:miyabi03@example.com">miyabi03@example.com</a></p>
+    </section>
+  </main>
+
+  <footer>
+    &copy; 2026 Floating Tasks. All rights reserved.
+  </footer>
+</body>
+</html>
