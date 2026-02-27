@@ -12,6 +12,8 @@
   --input-bg: rgba(255, 255, 255, 0.05);
   --accent: #34c759;
   --accent-subtle: rgba(52, 199, 89, 0.1);
+  --accent2: #5ac8fa;
+  --accent3: #bf5af2;
 }
 
 [data-theme="light"] {
@@ -26,6 +28,8 @@
   --input-bg: rgba(0, 0, 0, 0.03);
   --accent: #30a14e;
   --accent-subtle: rgba(48, 161, 78, 0.08);
+  --accent2: #32ade6;
+  --accent3: #af52de;
 }
 
 /* Reset */
@@ -62,6 +66,7 @@ body {
   border-radius: 12px;
   border: 1px solid var(--border);
   overflow: hidden;
+  isolation: isolate;
 }
 
 /* Loading state */
