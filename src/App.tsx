@@ -1,7 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { getCurrentWindow, currentMonitor } from "@tauri-apps/api/window";
 import { LogicalPosition } from "@tauri-apps/api/dpi";
-import { BackgroundAnimation } from "./components/BackgroundAnimation";
 import { TitleBar } from "./components/TitleBar";
 import { TaskInput } from "./components/TaskInput";
 import { TaskList } from "./components/TaskList";
@@ -93,7 +92,6 @@ export function App() {
   if (isLoading) {
     return (
       <div className="app" ref={appRef}>
-        <BackgroundAnimation />
         <div className="app-loading">Loading...</div>
       </div>
     );
@@ -102,7 +100,6 @@ export function App() {
   if (!isLoggedIn) {
     return (
       <div className="app" ref={appRef}>
-        <BackgroundAnimation />
         <LoginScreen onSignIn={signIn} />
       </div>
     );
@@ -111,7 +108,6 @@ export function App() {
   if (showSettings) {
     return (
       <div className="app" ref={appRef}>
-        <BackgroundAnimation />
         <SettingsScreen
           templates={templates}
           onAdd={addTemplate}
@@ -129,7 +125,6 @@ export function App() {
 
   return (
     <div className="app" ref={appRef}>
-      <BackgroundAnimation />
       <TitleBar
         theme={theme}
         onToggleTheme={toggleTheme}
