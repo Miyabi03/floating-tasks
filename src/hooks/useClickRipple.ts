@@ -5,6 +5,7 @@ const BUBBLE_COUNT = 3;
 const ACCENT_VARS = ["--accent", "--accent2", "--accent3"] as const;
 
 function getRandomAccentColor(): string {
+  if (Math.random() < 0.25) return "#ffffff";
   const varName = ACCENT_VARS[Math.floor(Math.random() * ACCENT_VARS.length)];
   return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
 }
