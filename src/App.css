@@ -14,6 +14,7 @@
   --accent-subtle: rgba(52, 199, 89, 0.1);
   --accent2: #5ac8fa;
   --accent3: #bf5af2;
+  --bg-end: rgba(22, 24, 30, 0.92);
 }
 
 [data-theme="light"] {
@@ -30,6 +31,7 @@
   --accent-subtle: rgba(48, 161, 78, 0.08);
   --accent2: #32ade6;
   --accent3: #af52de;
+  --bg-end: rgba(240, 240, 248, 0.92);
 }
 
 /* Reset */
@@ -60,7 +62,12 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--bg);
+  background:
+    linear-gradient(
+      to bottom,
+      var(--bg),
+      var(--bg-end)
+    );
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-radius: 12px;
