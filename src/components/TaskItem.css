@@ -47,7 +47,7 @@
   width: 16px;
   height: 16px;
   border: 1.5px solid var(--border-strong);
-  border-radius: 50%;
+  border-radius: 4px;
   background: transparent;
   cursor: pointer;
   display: flex;
