@@ -34,9 +34,9 @@ export function useClickRipple(containerRef: React.RefObject<HTMLDivElement | nu
 
         const color = getRandomAccentColor();
 
-        const size = 100;
-        const driftX = (Math.random() - 0.5) * 80;
-        const driftY = -(30 + Math.random() * 60);
+        const size = 90;
+        const driftX = (Math.random() - 0.5) * 160;
+        const driftY = -(50 + Math.random() * 120);
         const delay = Math.random() * 120;
         const duration = 500 + Math.random() * 300;
 
