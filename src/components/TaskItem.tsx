@@ -51,6 +51,7 @@ export function TaskItem({
   const isSelected = selectedTaskId === task.id;
   const isEditing = editingTaskId === task.id;
   const showSubInput = subInputTaskId === task.id;
+  const isReadOnly = task.addnessGoalId !== undefined;
 
   const handleAddSub = (text: string) => {
     onAddSub(text, task.id);
@@ -59,6 +60,10 @@ export function TaskItem({
 
   const handleTextClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isReadOnly) {
+      onSelect(task.id);
+      return;
+    }
     if (isSelected) {
       onStartEditing(task.id);
     } else {
@@ -109,9 +114,10 @@ export function TaskItem({
           className="task-checkbox"
           onClick={(e) => {
             e.stopPropagation();
-            onToggle(task.id);
+            if (!isReadOnly) onToggle(task.id);
           }}
           aria-label={task.completed ? "未完了に戻す" : "完了にする"}
+          style={isReadOnly ? { cursor: "default", opacity: 0.6 } : undefined}
         >
           {task.completed && <span className="task-check-icon">{"\u2713"}</span>}
         </button>
@@ -138,34 +144,36 @@ export function TaskItem({
           </span>
         )}
 
-        <div className="task-actions">
-          {depth < MAX_DEPTH && (
+        {!isReadOnly && (
+          <div className="task-actions">
+            {depth < MAX_DEPTH && (
+              <button
+                className="task-action-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (showSubInput) {
+                    onCancelSubInput();
+                  } else {
+                    onShowSubInput(task.id);
+                  }
+                }}
+                title="サブタスクを追加"
+              >
+                +
+              </button>
+            )}
             <button
-              className="task-action-btn"
+              className="task-action-btn task-action-btn--delete"
               onClick={(e) => {
                 e.stopPropagation();
-                if (showSubInput) {
-                  onCancelSubInput();
-                } else {
-                  onShowSubInput(task.id);
-                }
+                onDelete(task.id);
               }}
-              title="サブタスクを追加"
+              title="削除"
             >
-              +
+              {"\u2715"}
             </button>
-          )}
-          <button
-            className="task-action-btn task-action-btn--delete"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(task.id);
-            }}
-            title="削除"
-          >
-            {"\u2715"}
-          </button>
-        </div>
+          </div>
+        )}
       </div>
 
       {showSubInput && (

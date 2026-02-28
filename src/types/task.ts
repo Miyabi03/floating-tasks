@@ -6,4 +6,5 @@ export interface Task {
   readonly parentId: string | null;
   readonly calendarEventId?: string;
   readonly recurringTemplateId?: string;
+  readonly addnessGoalId?: string;
 }

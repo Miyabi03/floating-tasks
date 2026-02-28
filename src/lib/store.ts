@@ -106,3 +106,13 @@ export async function saveResetState(state: RecurringResetState): Promise<void> 
   await store.set("recurringResetState", state);
 }
 
+export async function loadAddnessConnected(): Promise<boolean> {
+  const store = await getStore();
+  return (await store.get<boolean>("addnessConnected")) ?? false;
+}
+
+export async function saveAddnessConnected(connected: boolean): Promise<void> {
+  const store = await getStore();
+  await store.set("addnessConnected", connected);
+}
+

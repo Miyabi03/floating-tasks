@@ -16,6 +16,10 @@ interface SettingsScreenProps {
   readonly onUpdateSubTask: (templateId: string, subTaskId: string, text: string) => void;
   readonly onMove: (id: string, direction: "up" | "down") => void;
   readonly onClose: () => void;
+  readonly addnessConnected: boolean;
+  readonly addnessError: string | null;
+  readonly onAddnessConnect: () => void;
+  readonly onAddnessDisconnect: () => void;
 }
 
 export function SettingsScreen({
@@ -28,6 +32,10 @@ export function SettingsScreen({
   onUpdateSubTask,
   onMove,
   onClose,
+  addnessConnected,
+  addnessError,
+  onAddnessConnect,
+  onAddnessDisconnect,
 }: SettingsScreenProps) {
   return (
     <div className="settings-screen">
@@ -60,6 +68,33 @@ export function SettingsScreen({
               isLast={idx === templates.length - 1}
             />
           ))
+        )}
+      </div>
+
+      <div className="settings-addness">
+        <div className="settings-addness-header">Addness連携</div>
+        {addnessError && (
+          <div className="settings-addness-error">{addnessError}</div>
+        )}
+        {addnessConnected ? (
+          <div className="settings-addness-row">
+            <span className="settings-addness-status">接続中</span>
+            <button
+              className="settings-addness-btn settings-addness-btn--disconnect"
+              onClick={onAddnessDisconnect}
+            >
+              解除
+            </button>
+          </div>
+        ) : (
+          <div className="settings-addness-row">
+            <button
+              className="settings-addness-btn settings-addness-btn--connect"
+              onClick={onAddnessConnect}
+            >
+              接続する
+            </button>
+          </div>
         )}
       </div>
     </div>

@@ -15,6 +15,7 @@ import { useGoogleAuth } from "./hooks/useGoogleAuth";
 import { useCalendarEvents } from "./hooks/useCalendarEvents";
 import { useRecurringTemplates } from "./hooks/useRecurringTemplates";
 import { useRecurringReset } from "./hooks/useRecurringReset";
+import { useAddnessSync } from "./hooks/useAddnessSync";
 import "./App.css";
 
 export function App() {
@@ -34,6 +35,7 @@ export function App() {
     tasks,
     isLoaded,
     syncCalendarEvents,
+    syncAddnessGoals,
     resetTasks,
   } = useTasks();
   const { theme, toggleTheme } = useTheme();
@@ -52,6 +54,14 @@ export function App() {
     updateSubTask,
     moveTemplate,
   } = useRecurringTemplates();
+
+  const {
+    goals: addnessGoals,
+    isConnected: addnessConnected,
+    error: addnessError,
+    connect: addnessConnect,
+    disconnect: addnessDisconnect,
+  } = useAddnessSync();
 
   useRecurringReset(tasks, templates, isLoaded, templatesLoaded, resetTasks);
 
@@ -82,6 +92,12 @@ export function App() {
       syncCalendarEvents(events);
     }
   }, [events, syncCalendarEvents]);
+
+  useEffect(() => {
+    if (addnessGoals.length > 0) {
+      syncAddnessGoals(addnessGoals);
+    }
+  }, [addnessGoals, syncAddnessGoals]);
 
   const handleAddRoot = (text: string) => addTask(text, null);
   const handleAddSub = (text: string, parentId: string) => {
@@ -118,6 +134,10 @@ export function App() {
           onUpdateSubTask={updateSubTask}
           onMove={moveTemplate}
           onClose={() => setShowSettings(false)}
+          addnessConnected={addnessConnected}
+          addnessError={addnessError}
+          onAddnessConnect={addnessConnect}
+          onAddnessDisconnect={addnessDisconnect}
         />
       </div>
     );

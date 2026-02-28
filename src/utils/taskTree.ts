@@ -109,6 +109,10 @@ function isTodaySection(task: Task): boolean {
   return task.calendarEventId?.startsWith("gcal-today-") === true && task.parentId === null;
 }
 
+function isAddnessSection(task: Task): boolean {
+  return task.addnessGoalId === "addness-section" && task.parentId === null;
+}
+
 /**
  * Stable-sort siblings so that fully-completed subtrees sink to the bottom.
  * The "Today" section is pinned to the top unless all its tasks are completed,
@@ -123,7 +127,7 @@ export function sortByCompletion(
   const incomplete: Task[] = [];
   const complete: Task[] = [];
   for (const task of siblings) {
-    if (isTodaySection(task)) {
+    if (isTodaySection(task) || isAddnessSection(task)) {
       if (isSubtreeCompleted(allTasks, task.id)) {
         complete.push(task);
       } else {

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Task } from "../types/task";
 import type { CalendarEvent } from "../types/calendar";
+import type { AddnessGoal } from "../types/addness";
 import { loadTasks, saveTasks } from "../lib/store";
 import {
   indentTask as indentTaskTree,
@@ -273,6 +274,105 @@ export function useTasks() {
     [],
   );
 
+  const syncAddnessGoals = useCallback(
+    (goals: readonly AddnessGoal[]) => {
+      setTasks((prev) => {
+        const sectionMarker = "addness-section";
+        const sectionId = "addness-section";
+
+        // Find or create Addness section
+        const hasSection = prev.some((t) => t.addnessGoalId === sectionMarker);
+        let next = hasSection
+          ? [...prev]
+          : [
+              ...prev,
+              {
+                id: sectionId,
+                text: "Addness",
+                completed: false,
+                createdAt: new Date().toISOString(),
+                parentId: null,
+                addnessGoalId: sectionMarker,
+              } as Task,
+            ];
+
+        // Find the section task's actual id
+        const section = next.find((t) => t.addnessGoalId === sectionMarker);
+        if (!section) return prev;
+        const parentId = section.id;
+
+        // Build map of existing goal tasks
+        const existingByGoalId = new Map(
+          next
+            .filter(
+              (t) =>
+                t.parentId === parentId &&
+                t.addnessGoalId?.startsWith("addness-goal-"),
+            )
+            .map((t) => [t.addnessGoalId!, t]),
+        );
+
+        const incomingIds = new Set(
+          goals.map((g) => `addness-goal-${g.id}`),
+        );
+
+        // Mark tasks for goals no longer present as completed (not removed)
+        next = next.map((t) => {
+          if (
+            t.parentId === parentId &&
+            t.addnessGoalId?.startsWith("addness-goal-") &&
+            !incomingIds.has(t.addnessGoalId) &&
+            !t.completed
+          ) {
+            return { ...t, completed: true };
+          }
+          return t;
+        });
+
+        // Upsert goal tasks
+        for (const goal of goals) {
+          const goalTaskId = `addness-goal-${goal.id}`;
+          const existing = existingByGoalId.get(goalTaskId);
+
+          if (existing) {
+            // Update text and completed state if changed
+            if (existing.text !== goal.title || existing.completed !== goal.completed) {
+              next = next.map((t) =>
+                t.id === existing.id
+                  ? { ...t, text: goal.title, completed: goal.completed }
+                  : t,
+              );
+            }
+          } else {
+            next = [
+              ...next,
+              {
+                id: goalTaskId,
+                text: goal.title,
+                completed: goal.completed,
+                createdAt: new Date().toISOString(),
+                parentId,
+                addnessGoalId: goalTaskId,
+              } as Task,
+            ];
+          }
+        }
+
+        // Update section completion based on children
+        const children = next.filter(
+          (t) => t.parentId === parentId && t.addnessGoalId?.startsWith("addness-goal-"),
+        );
+        const allCompleted = children.length > 0 && children.every((c) => c.completed);
+        next = next.map((t) =>
+          t.id === parentId ? { ...t, completed: allCompleted } : t,
+        );
+
+        return next;
+      });
+    },
+    [],
+  );
+
   const resetTasks = useCallback((newTasks: readonly Task[]) => {
     setTasks(newTasks);
   }, []);
@@ -290,6 +390,7 @@ export function useTasks() {
     getRootTasks,
     getChildren,
     syncCalendarEvents,
+    syncAddnessGoals,
     resetTasks,
   };
 }
