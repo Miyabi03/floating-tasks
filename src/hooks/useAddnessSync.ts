@@ -2,10 +2,42 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import type { AddnessGoal } from "../types/addness";
-import { loadAddnessConnected, saveAddnessConnected } from "../lib/store";
+import {
+  loadAddnessConnected,
+  saveAddnessConnected,
+  loadAddnessExtractJs,
+  saveAddnessExtractJs,
+  loadAddnessJsFetchedAt,
+  saveAddnessJsFetchedAt,
+} from "../lib/store";
 
 const POLL_INTERVAL = 60 * 1000;
 const INITIAL_FETCH_DELAY = 5_000;
+const EXTRACT_JS_URL =
+  "https://raw.githubusercontent.com/Miyabi03/floating-tasks/main/scripts/addness/extract.js";
+const JS_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+async function getExtractJs(): Promise<string | null> {
+  try {
+    const fetchedAt = await loadAddnessJsFetchedAt();
+    const cached = await loadAddnessExtractJs();
+    if (cached && Date.now() - fetchedAt < JS_CACHE_TTL) {
+      return cached;
+    }
+
+    const res = await fetch(EXTRACT_JS_URL);
+    if (!res.ok) {
+      return cached;
+    }
+    const code = await res.text();
+    await saveAddnessExtractJs(code);
+    await saveAddnessJsFetchedAt(Date.now());
+    return code;
+  } catch {
+    const cached = await loadAddnessExtractJs().catch(() => null);
+    return cached;
+  }
+}
 
 interface UseAddnessSyncReturn {
   readonly goals: readonly AddnessGoal[];
@@ -44,8 +76,9 @@ export function useAddnessSync(): UseAddnessSyncReturn {
         try {
           await invoke("addness_start_sync");
           windowReadyRef.current = true;
-          setTimeout(() => {
-            invoke("addness_fetch_data").catch(() => {});
+          setTimeout(async () => {
+            const jsCode = await getExtractJs();
+            invoke("addness_fetch_data", { jsCode: jsCode ?? "" }).catch(() => {});
           }, INITIAL_FETCH_DELAY);
         } catch {
           // Failed to restore sync window
@@ -74,7 +107,8 @@ export function useAddnessSync(): UseAddnessSyncReturn {
   const fetchData = useCallback(async () => {
     try {
       await ensureWindow();
-      await invoke("addness_fetch_data");
+      const jsCode = await getExtractJs();
+      await invoke("addness_fetch_data", { jsCode: jsCode ?? "" });
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setIsLoading(false);

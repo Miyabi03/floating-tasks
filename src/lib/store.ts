@@ -116,3 +116,23 @@ export async function saveAddnessConnected(connected: boolean): Promise<void> {
   await store.set("addnessConnected", connected);
 }
 
+export async function loadAddnessExtractJs(): Promise<string | null> {
+  const store = await getStore();
+  return (await store.get<string>("addnessExtractJs")) ?? null;
+}
+
+export async function saveAddnessExtractJs(code: string): Promise<void> {
+  const store = await getStore();
+  await store.set("addnessExtractJs", code);
+}
+
+export async function loadAddnessJsFetchedAt(): Promise<number> {
+  const store = await getStore();
+  return (await store.get<number>("addnessJsFetchedAt")) ?? 0;
+}
+
+export async function saveAddnessJsFetchedAt(ts: number): Promise<void> {
+  const store = await getStore();
+  await store.set("addnessJsFetchedAt", ts);
+}
+
