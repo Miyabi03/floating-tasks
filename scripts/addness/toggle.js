@@ -54,6 +54,7 @@
     var allEls = main.querySelectorAll('*');
     var clicked = false;
 
+    var clickTarget = null;
     for (var i = 0; i < allEls.length; i++) {
         var el = allEls[i];
         var own = getOwnText(el);
@@ -61,28 +62,32 @@
         var cleaned = cleanTitle(own);
         if (cleaned === target) {
             var cb = findCheckbox(el);
-            if (cb) {
-                cb.click();
-            } else {
-                el.click();
-            }
+            clickTarget = cb || el;
             clicked = true;
             break;
         }
     }
 
-    if (!clicked) return;
+    if (!clicked || !clickTarget) return;
 
-    // --- Re-extract after 1 second ---
+    // 1st click: "running/in-progress"
+    clickTarget.click();
+
+    // 2nd click after 1.5s: "completed"
     setTimeout(function() {
-        try {
-            var goals = extractFromDOM();
-            if (goals.length === 0) goals = extractFromText();
-            sendGoals(goals);
-        } catch(e) {
-            sendGoals([]);
-        }
-    }, 1000);
+        clickTarget.click();
+
+        // Re-extract after another 1s to read final state
+        setTimeout(function() {
+            try {
+                var goals = extractFromDOM();
+                if (goals.length === 0) goals = extractFromText();
+                sendGoals(goals);
+            } catch(e) {
+                sendGoals([]);
+            }
+        }, 1000);
+    }, 1500);
 
     function sendGoals(goals) {
         var json = JSON.stringify(goals);
