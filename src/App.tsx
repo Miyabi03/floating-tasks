@@ -61,6 +61,7 @@ export function App() {
     error: addnessError,
     connect: addnessConnect,
     disconnect: addnessDisconnect,
+    refresh: addnessRefresh,
   } = useAddnessSync();
 
   useRecurringReset(tasks, templates, isLoaded, templatesLoaded, resetTasks);
@@ -150,6 +151,7 @@ export function App() {
         onToggleTheme={toggleTheme}
         dailyMessage={dailyMessage}
         onOpenSettings={() => setShowSettings(true)}
+        onRefresh={addnessRefresh}
       />
       <TaskInput onAdd={handleAddRoot} />
       <TaskList

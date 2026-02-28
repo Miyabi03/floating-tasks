@@ -4,7 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import type { AddnessGoal } from "../types/addness";
 import { loadAddnessConnected, saveAddnessConnected } from "../lib/store";
 
-const POLL_INTERVAL = 5 * 60 * 1000;
+const POLL_INTERVAL = 60 * 1000;
 const INITIAL_FETCH_DELAY = 5_000;
 
 interface UseAddnessSyncReturn {
@@ -14,6 +14,7 @@ interface UseAddnessSyncReturn {
   readonly error: string | null;
   readonly connect: () => Promise<void>;
   readonly disconnect: () => Promise<void>;
+  readonly refresh: () => Promise<void>;
 }
 
 export function useAddnessSync(): UseAddnessSyncReturn {
@@ -22,11 +23,33 @@ export function useAddnessSync(): UseAddnessSyncReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const windowReadyRef = useRef(false);
 
+  // Ensure WebView exists, creating it if needed (hidden re-creation on restart)
+  const ensureWindow = useCallback(async () => {
+    if (windowReadyRef.current) return;
+    try {
+      await invoke("addness_start_sync");
+      windowReadyRef.current = true;
+    } catch {
+      // Window creation failed
+    }
+  }, []);
+
+  // Restore connection + re-create WebView on app startup
   useEffect(() => {
-    loadAddnessConnected().then((connected) => {
+    loadAddnessConnected().then(async (connected) => {
       if (connected) {
         setIsConnected(true);
+        try {
+          await invoke("addness_start_sync");
+          windowReadyRef.current = true;
+          setTimeout(() => {
+            invoke("addness_fetch_data").catch(() => {});
+          }, INITIAL_FETCH_DELAY);
+        } catch {
+          // Failed to restore sync window
+        }
       }
     });
   }, []);
@@ -50,11 +73,13 @@ export function useAddnessSync(): UseAddnessSyncReturn {
 
   const fetchData = useCallback(async () => {
     try {
+      await ensureWindow();
       await invoke("addness_fetch_data");
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
+      setIsLoading(false);
     }
-  }, []);
+  }, [ensureWindow]);
 
   useEffect(() => {
     if (!isConnected) {
@@ -80,6 +105,7 @@ export function useAddnessSync(): UseAddnessSyncReturn {
     setError(null);
     try {
       await invoke("addness_start_sync");
+      windowReadyRef.current = true;
       setIsConnected(true);
       await saveAddnessConnected(true);
       setTimeout(() => {
@@ -97,11 +123,19 @@ export function useAddnessSync(): UseAddnessSyncReturn {
     } catch {
       // Window may already be closed
     }
+    windowReadyRef.current = false;
     setIsConnected(false);
     setGoals([]);
     setError(null);
     await saveAddnessConnected(false);
   }, []);
 
-  return { goals, isConnected, isLoading, error, connect, disconnect };
+  const refresh = useCallback(async () => {
+    if (!isConnected) return;
+    setIsLoading(true);
+    setError(null);
+    await fetchData();
+  }, [isConnected, fetchData]);
+
+  return { goals, isConnected, isLoading, error, connect, disconnect, refresh };
 }

@@ -111,29 +111,58 @@ async fn addness_fetch_data(app: tauri::AppHandle) -> Result<(), String> {
         .get_webview_window("addness-sync")
         .ok_or_else(|| "Addness sync window not found".to_string())?;
 
+    // Reload the page to get latest state from Addness
+    window.eval("location.reload()").map_err(|e| format!("{e}"))?;
+
+    // Wait for page to reload and render
+    std::thread::sleep(std::time::Duration::from_secs(4));
+
+    // Re-acquire window handle after reload
+    let window = app
+        .get_webview_window("addness-sync")
+        .ok_or_else(|| "Addness sync window not found after reload".to_string())?;
+
     let js = r#"
     (function() {
         try {
-            var links = document.querySelectorAll('a[href^="/goals/"]');
             var goals = [];
-            links.forEach(function(a) {
-                var href = a.getAttribute('href') || '';
-                var match = href.match(/\/goals\/([^/?#]+)/);
-                if (!match) return;
-                var id = match[1];
-                var title = (a.textContent || '').trim();
-                if (!title) return;
-                var completed = false;
-                var el = a.closest('[data-completed]');
-                if (el && el.getAttribute('data-completed') === 'true') {
-                    completed = true;
+            var idx = 0;
+            var seen = new Set();
+
+            var text = document.body.innerText;
+            var lines = text.split(/\n/).map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
+
+            var inGoalSection = false;
+
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+
+                if (line.includes('\u4eca\u3084\u308b\u3079\u304d\u30b4\u30fc\u30eb')) {
+                    inGoalSection = true;
+                    continue;
                 }
-                var style = window.getComputedStyle(a);
-                if (style.textDecoration.includes('line-through') || style.opacity === '0.5') {
-                    completed = true;
-                }
-                goals.push({ id: id, title: title, completed: completed });
-            });
+
+                if (!inGoalSection) continue;
+
+                if (line.match(/^(\u5B8C\u4E86|\u30A2\u30FC\u30AB\u30A4\u30D6|\u7FD2\u6163|\u6210\u679C|\u30B4\u30FC\u30EB\u4E00\u89A7)/)) break;
+
+                if (line.length < 4) continue;
+                if (line.match(/^[\u301C~]\s*\d/)) continue;
+                if (line.match(/^(\u691C\u7D22|Q\s)/)) continue;
+
+                var title = line.replace(/\s*[\u301C~]\s*\d{1,2}\/\d{1,2}\s+\d{2}:\d{2}\s*$/, '').trim();
+                title = title.replace(/^[\u25B6\u25B7\u25BA\u25B8\u25B3\u25B2\u21BB\u25C9\u25CB\u25CF\u25CE\u23F0\uD83D\uDD04\u25A0\u25A1\u25AA\u25AB\s]+/, '').trim();
+
+                if (title.length < 2 || seen.has(title)) continue;
+                seen.add(title);
+
+                goals.push({
+                    id: 'addness-' + (idx++),
+                    title: title,
+                    completed: false
+                });
+            }
+
             var json = JSON.stringify(goals);
             var encoded = encodeURIComponent(json);
             window.location.href = 'http://localhost:19837?data=' + encoded;

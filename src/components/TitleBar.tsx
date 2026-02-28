@@ -6,9 +6,10 @@ interface TitleBarProps {
   readonly onToggleTheme: () => void;
   readonly dailyMessage: string;
   readonly onOpenSettings: () => void;
+  readonly onRefresh: () => void;
 }
 
-export function TitleBar({ theme, onToggleTheme, dailyMessage, onOpenSettings }: TitleBarProps) {
+export function TitleBar({ theme, onToggleTheme, dailyMessage, onOpenSettings, onRefresh }: TitleBarProps) {
   const handleClose = async () => {
     await getCurrentWindow().hide();
   };
@@ -22,7 +23,7 @@ export function TitleBar({ theme, onToggleTheme, dailyMessage, onOpenSettings }:
         <div className="title-bar-controls">
           <button
             className="title-bar-btn reload-btn"
-            onClick={() => window.location.reload()}
+            onClick={onRefresh}
             title="Reload"
           >
             {"\u21BB"}
