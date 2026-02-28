@@ -115,31 +115,38 @@ function isAddnessSection(task: Task): boolean {
 
 /**
  * Stable-sort siblings so that fully-completed subtrees sink to the bottom.
- * The "Today" section is pinned to the top unless all its tasks are completed,
- * in which case it sinks to the bottom with other completed subtrees.
+ * Order: Today (pinned top) → incomplete → Addness (pinned bottom) → completed.
  * Preserves relative order within each group.
  */
 export function sortByCompletion(
   siblings: readonly Task[],
   allTasks: readonly Task[],
 ): readonly Task[] {
-  const pinned: Task[] = [];
+  const pinnedTop: Task[] = [];
   const incomplete: Task[] = [];
+  const pinnedBottom: Task[] = [];
   const complete: Task[] = [];
   for (const task of siblings) {
-    if (isTodaySection(task) || isAddnessSection(task)) {
-      if (isSubtreeCompleted(allTasks, task.id)) {
+    const subtreeComplete = isSubtreeCompleted(allTasks, task.id);
+    if (isTodaySection(task)) {
+      if (subtreeComplete) {
         complete.push(task);
       } else {
-        pinned.push(task);
+        pinnedTop.push(task);
       }
-    } else if (isSubtreeCompleted(allTasks, task.id)) {
+    } else if (isAddnessSection(task)) {
+      if (subtreeComplete) {
+        complete.push(task);
+      } else {
+        pinnedBottom.push(task);
+      }
+    } else if (subtreeComplete) {
       complete.push(task);
     } else {
       incomplete.push(task);
     }
   }
-  return [...pinned, ...incomplete, ...complete];
+  return [...pinnedTop, ...incomplete, ...pinnedBottom, ...complete];
 }
 
 export function indentTask(tasks: readonly Task[], taskId: string): readonly Task[] {
