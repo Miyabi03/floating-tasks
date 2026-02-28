@@ -51,7 +51,8 @@ export function TaskItem({
   const isSelected = selectedTaskId === task.id;
   const isEditing = editingTaskId === task.id;
   const showSubInput = subInputTaskId === task.id;
-  const isReadOnly = task.addnessGoalId !== undefined;
+  const isAddnessGoal = task.addnessGoalId?.startsWith("addness-goal-") ?? false;
+  const isReadOnly = task.addnessGoalId !== undefined && !isAddnessGoal;
 
   const handleAddSub = (text: string) => {
     onAddSub(text, task.id);
@@ -60,7 +61,7 @@ export function TaskItem({
 
   const handleTextClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (isReadOnly) {
+    if (isReadOnly || isAddnessGoal) {
       onSelect(task.id);
       return;
     }
@@ -144,7 +145,7 @@ export function TaskItem({
           </span>
         )}
 
-        {!isReadOnly && (
+        {!isReadOnly && !isAddnessGoal && (
           <div className="task-actions">
             {depth < MAX_DEPTH && (
               <button

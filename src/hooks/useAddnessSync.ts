@@ -9,6 +9,10 @@ import {
   saveAddnessExtractJs,
   loadAddnessJsFetchedAt,
   saveAddnessJsFetchedAt,
+  loadAddnessToggleJs,
+  saveAddnessToggleJs,
+  loadAddnessToggleJsFetchedAt,
+  saveAddnessToggleJsFetchedAt,
 } from "../lib/store";
 
 const POLL_INTERVAL = 60 * 1000;
@@ -16,6 +20,8 @@ const INITIAL_FETCH_DELAY = 5_000;
 const EXTRACT_JS_URL =
   "https://raw.githubusercontent.com/Miyabi03/floating-tasks/main/scripts/addness/extract.js";
 const JS_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+const TOGGLE_JS_URL =
+  "https://raw.githubusercontent.com/Miyabi03/floating-tasks/main/scripts/addness/toggle.js";
 
 async function getExtractJs(): Promise<string | null> {
   try {
@@ -39,6 +45,28 @@ async function getExtractJs(): Promise<string | null> {
   }
 }
 
+async function getToggleJs(): Promise<string | null> {
+  try {
+    const fetchedAt = await loadAddnessToggleJsFetchedAt();
+    const cached = await loadAddnessToggleJs();
+    if (cached && Date.now() - fetchedAt < JS_CACHE_TTL) {
+      return cached;
+    }
+
+    const res = await fetch(TOGGLE_JS_URL);
+    if (!res.ok) {
+      return cached;
+    }
+    const code = await res.text();
+    await saveAddnessToggleJs(code);
+    await saveAddnessToggleJsFetchedAt(Date.now());
+    return code;
+  } catch {
+    const cached = await loadAddnessToggleJs().catch(() => null);
+    return cached;
+  }
+}
+
 interface UseAddnessSyncReturn {
   readonly goals: readonly AddnessGoal[];
   readonly isConnected: boolean;
@@ -47,6 +75,7 @@ interface UseAddnessSyncReturn {
   readonly connect: () => Promise<void>;
   readonly disconnect: () => Promise<void>;
   readonly refresh: () => Promise<void>;
+  readonly toggleGoal: (title: string) => Promise<void>;
 }
 
 export function useAddnessSync(): UseAddnessSyncReturn {
@@ -171,5 +200,12 @@ export function useAddnessSync(): UseAddnessSyncReturn {
     await fetchData();
   }, [isConnected, fetchData]);
 
-  return { goals, isConnected, isLoading, error, connect, disconnect, refresh };
+  const toggleGoal = useCallback(async (goalTitle: string) => {
+    const toggleJs = await getToggleJs();
+    if (!toggleJs) return;
+    const jsCode = `window.__ADDNESS_TOGGLE_TARGET__=${JSON.stringify(goalTitle)};\n${toggleJs}`;
+    await invoke("addness_eval_js", { jsCode });
+  }, []);
+
+  return { goals, isConnected, isLoading, error, connect, disconnect, refresh, toggleGoal };
 }

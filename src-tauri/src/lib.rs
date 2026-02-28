@@ -163,6 +163,15 @@ async fn addness_fetch_data(app: tauri::AppHandle, js_code: String) -> Result<()
 }
 
 #[tauri::command]
+async fn addness_eval_js(app: tauri::AppHandle, js_code: String) -> Result<(), String> {
+    let window = app
+        .get_webview_window("addness-sync")
+        .ok_or_else(|| "Addness sync window not found".to_string())?;
+    window.eval(&js_code).map_err(|e| format!("{e}"))?;
+    Ok(())
+}
+
+#[tauri::command]
 async fn addness_close_sync(app: tauri::AppHandle) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("addness-sync") {
         window.close().map_err(|e| format!("{e}"))?;
@@ -179,6 +188,7 @@ pub fn run() {
             google_auth_start,
             addness_start_sync,
             addness_fetch_data,
+            addness_eval_js,
             addness_close_sync,
         ])
         .setup(|app| {

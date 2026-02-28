@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { getCurrentWindow, currentMonitor } from "@tauri-apps/api/window";
 import { LogicalPosition } from "@tauri-apps/api/dpi";
 import { TitleBar } from "./components/TitleBar";
@@ -62,6 +62,7 @@ export function App() {
     connect: addnessConnect,
     disconnect: addnessDisconnect,
     refresh: addnessRefresh,
+    toggleGoal: addnessToggleGoal,
   } = useAddnessSync();
 
   useRecurringReset(tasks, templates, isLoaded, templatesLoaded, resetTasks);
@@ -99,6 +100,16 @@ export function App() {
       syncAddnessGoals(addnessGoals);
     }
   }, [addnessGoals, syncAddnessGoals]);
+
+  const handleToggle = useCallback((id: string) => {
+    const task = tasks.find(t => t.id === id);
+    if (task?.addnessGoalId?.startsWith("addness-goal-")) {
+      toggleTask(id);
+      addnessToggleGoal(task.text);
+    } else {
+      toggleTask(id);
+    }
+  }, [tasks, toggleTask, addnessToggleGoal]);
 
   const handleAddRoot = (text: string) => addTask(text, null);
   const handleAddSub = (text: string, parentId: string) => {
@@ -158,7 +169,7 @@ export function App() {
         rootTasks={getRootTasks()}
         tasks={tasks}
         collapsedIds={collapsedIds}
-        onToggle={toggleTask}
+        onToggle={handleToggle}
         onDelete={deleteTask}
         onAddSub={handleAddSub}
         onUpdateTask={updateTask}
