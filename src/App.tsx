@@ -1,6 +1,7 @@
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { getCurrentWindow, currentMonitor } from "@tauri-apps/api/window";
 import { LogicalPosition } from "@tauri-apps/api/dpi";
+import type { AddnessGoal } from "./types/addness";
 import { TitleBar } from "./components/TitleBar";
 import { TaskInput } from "./components/TaskInput";
 import { TaskList } from "./components/TaskList";
@@ -17,6 +18,8 @@ import { useRecurringTemplates } from "./hooks/useRecurringTemplates";
 import { useRecurringReset } from "./hooks/useRecurringReset";
 import { useAddnessSync } from "./hooks/useAddnessSync";
 import "./App.css";
+
+const OVERRIDE_TTL = 30_000; // 30 seconds
 
 export function App() {
   const appRef = useRef<HTMLDivElement>(null);
@@ -65,6 +68,9 @@ export function App() {
     toggleGoal: addnessToggleGoal,
   } = useAddnessSync();
 
+  // TTL-based overrides for Addness goals toggled from app side
+  const addnessOverridesRef = useRef<Map<string, { completed: boolean; at: number }>>(new Map());
+
   useRecurringReset(tasks, templates, isLoaded, templatesLoaded, resetTasks);
 
   useEffect(() => {
@@ -95,15 +101,40 @@ export function App() {
     }
   }, [events, syncCalendarEvents]);
 
-  useEffect(() => {
-    if (addnessGoals.length > 0) {
-      syncAddnessGoals(addnessGoals);
+  const resolvedGoals = useMemo((): readonly AddnessGoal[] => {
+    if (addnessGoals.length === 0) return addnessGoals;
+    const now = Date.now();
+    const overrides = addnessOverridesRef.current;
+
+    // Clean expired overrides
+    for (const [key, val] of overrides) {
+      if (now - val.at >= OVERRIDE_TTL) overrides.delete(key);
     }
-  }, [addnessGoals, syncAddnessGoals]);
+
+    return addnessGoals.map((goal) => {
+      const override = overrides.get(goal.title);
+      if (!override) return goal;
+      // Addness caught up — clear override
+      if (goal.completed === override.completed) {
+        overrides.delete(goal.title);
+        return goal;
+      }
+      // Override still active — keep app-side state
+      return { ...goal, completed: override.completed };
+    });
+  }, [addnessGoals]);
+
+  useEffect(() => {
+    if (resolvedGoals.length > 0) {
+      syncAddnessGoals(resolvedGoals);
+    }
+  }, [resolvedGoals, syncAddnessGoals]);
 
   const handleToggle = useCallback((id: string) => {
     const task = tasks.find(t => t.id === id);
     if (task?.addnessGoalId?.startsWith("addness-goal-")) {
+      const newCompleted = !task.completed;
+      addnessOverridesRef.current.set(task.text, { completed: newCompleted, at: Date.now() });
       toggleTask(id);
       addnessToggleGoal(task.text);
     } else {
