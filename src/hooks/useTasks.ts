@@ -299,16 +299,12 @@ export function useTasks() {
         // Find the section task's actual id
         const section = next.find((t) => t.addnessGoalId === sectionMarker);
         if (!section) return prev;
-        const parentId = section.id;
+        const sectionTaskId = section.id;
 
-        // Build map of existing goal tasks
+        // Build map of ALL existing addness goal tasks (any depth)
         const existingByGoalId = new Map(
           next
-            .filter(
-              (t) =>
-                t.parentId === parentId &&
-                t.addnessGoalId?.startsWith("addness-goal-"),
-            )
+            .filter((t) => t.addnessGoalId?.startsWith("addness-goal-"))
             .map((t) => [t.addnessGoalId!, t]),
         );
 
@@ -316,10 +312,9 @@ export function useTasks() {
           goals.map((g) => `addness-goal-${g.id}`),
         );
 
-        // Mark tasks for goals no longer present as completed (not removed)
+        // Mark tasks for goals no longer present as completed (any depth)
         next = next.map((t) => {
           if (
-            t.parentId === parentId &&
             t.addnessGoalId?.startsWith("addness-goal-") &&
             !incomingIds.has(t.addnessGoalId) &&
             !t.completed
@@ -329,17 +324,23 @@ export function useTasks() {
           return t;
         });
 
-        // Upsert goal tasks
+        // Upsert goal tasks (supports hierarchy via goal.parentId)
         for (const goal of goals) {
           const goalTaskId = `addness-goal-${goal.id}`;
+          const taskParentId = goal.parentId
+            ? `addness-goal-${goal.parentId}`
+            : sectionTaskId;
           const existing = existingByGoalId.get(goalTaskId);
 
           if (existing) {
-            // Update text and completed state if changed
-            if (existing.text !== goal.title || existing.completed !== goal.completed) {
+            if (
+              existing.text !== goal.title ||
+              existing.completed !== goal.completed ||
+              existing.parentId !== taskParentId
+            ) {
               next = next.map((t) =>
                 t.id === existing.id
-                  ? { ...t, text: goal.title, completed: goal.completed }
+                  ? { ...t, text: goal.title, completed: goal.completed, parentId: taskParentId }
                   : t,
               );
             }
@@ -351,20 +352,20 @@ export function useTasks() {
                 text: goal.title,
                 completed: goal.completed,
                 createdAt: new Date().toISOString(),
-                parentId,
+                parentId: taskParentId,
                 addnessGoalId: goalTaskId,
               } as Task,
             ];
           }
         }
 
-        // Update section completion based on children
-        const children = next.filter(
-          (t) => t.parentId === parentId && t.addnessGoalId?.startsWith("addness-goal-"),
+        // Update section completion based on direct children
+        const directChildren = next.filter(
+          (t) => t.parentId === sectionTaskId && t.addnessGoalId?.startsWith("addness-goal-"),
         );
-        const allCompleted = children.length > 0 && children.every((c) => c.completed);
+        const allCompleted = directChildren.length > 0 && directChildren.every((c) => c.completed);
         next = next.map((t) =>
-          t.id === parentId ? { ...t, completed: allCompleted } : t,
+          t.id === sectionTaskId ? { ...t, completed: allCompleted } : t,
         );
 
         return next;
