@@ -5,7 +5,7 @@ import { buildVisibleTaskList } from "../utils/taskTree";
 interface UseKeyboardNavOptions {
   readonly tasks: readonly Task[];
   readonly collapsedIds: ReadonlySet<string>;
-  readonly onToggle: (id: string) => void;
+  readonly onToggle: (id: string, fromCheckbox?: boolean) => void;
   readonly onDelete: (id: string) => void;
   readonly onIndentTask: (id: string) => void;
   readonly onOutdentTask: (id: string) => void;

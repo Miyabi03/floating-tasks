@@ -8,7 +8,7 @@ interface TaskListProps {
   readonly rootTasks: readonly Task[];
   readonly tasks: readonly Task[];
   readonly collapsedIds: ReadonlySet<string>;
-  readonly onToggle: (id: string) => void;
+  readonly onToggle: (id: string, fromCheckbox?: boolean) => void;
   readonly onDelete: (id: string) => void;
   readonly onAddSub: (text: string, parentId: string) => void;
   readonly onUpdateTask: (id: string, text: string) => void;

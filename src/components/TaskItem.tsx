@@ -11,7 +11,7 @@ interface TaskItemProps {
   readonly selectedTaskId: string | null;
   readonly editingTaskId: string | null;
   readonly subInputTaskId: string | null;
-  readonly onToggle: (id: string) => void;
+  readonly onToggle: (id: string, fromCheckbox?: boolean) => void;
   readonly onDelete: (id: string) => void;
   readonly onAddSub: (text: string, parentId: string) => void;
   readonly onUpdateTask: (id: string, text: string) => void;
@@ -115,7 +115,7 @@ export function TaskItem({
           className="task-checkbox"
           onClick={(e) => {
             e.stopPropagation();
-            if (!isReadOnly) onToggle(task.id);
+            if (!isReadOnly) onToggle(task.id, true);
           }}
           aria-label={task.completed ? "未完了に戻す" : "完了にする"}
           style={isReadOnly ? { cursor: "default", opacity: 0.6 } : undefined}

@@ -130,13 +130,15 @@ export function App() {
     }
   }, [resolvedGoals, syncAddnessGoals]);
 
-  const handleToggle = useCallback((id: string) => {
+  const handleToggle = useCallback((id: string, fromCheckbox?: boolean) => {
     const task = tasks.find(t => t.id === id);
     if (task?.addnessGoalId?.startsWith("addness-goal-")) {
       const newCompleted = !task.completed;
       addnessOverridesRef.current.set(task.text, { completed: newCompleted, at: Date.now() });
       toggleTask(id);
-      addnessToggleGoal(task.text);
+      if (fromCheckbox) {
+        addnessToggleGoal(task.text);
+      }
     } else {
       toggleTask(id);
     }
