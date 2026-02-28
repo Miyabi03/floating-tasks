@@ -13,7 +13,7 @@ pub fn setup_tray<R: Runtime>(app: &tauri::App<R>) -> tauri::Result<()> {
     let menu = Menu::with_items(app, &[&show_item, &hide_item, &quit_item])?;
 
     let icon = Image::from_bytes(include_bytes!("../icons/icon.png"))
-        .expect("failed to load tray icon");
+        .map_err(|e| tauri::Error::Anyhow(e.into()))?;
 
     TrayIconBuilder::new()
         .icon(icon)

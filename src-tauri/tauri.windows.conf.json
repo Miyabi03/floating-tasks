@@ -1,0 +1,11 @@
+{
+  "app": {
+    "macOSPrivateApi": false,
+    "windows": [
+      {
+        "transparent": false,
+        "shadow": true
+      }
+    ]
+  }
+}
