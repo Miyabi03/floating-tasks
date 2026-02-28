@@ -36,6 +36,19 @@
         return /^[\u301C~]\s*\d/.test(text) || /^\d{1,2}\/\d{1,2}/.test(text);
     }
 
+    function detectChecked(el) {
+        var node = el;
+        for (var d = 0; d < 5; d++) {
+            node = node.parentElement;
+            if (!node) break;
+            var cb = node.querySelector('input[type="checkbox"]');
+            if (cb) return !!cb.checked;
+            var role = node.querySelector('[role="checkbox"]');
+            if (role) return role.getAttribute('aria-checked') === 'true';
+        }
+        return false;
+    }
+
     // --- Toggle target goal ---
     var main = document.querySelector('main') || document.body;
     var allEls = main.querySelectorAll('*');
@@ -88,7 +101,7 @@
             if (own.length < 3) continue;
             var rect = e.getBoundingClientRect();
             if (rect.width <= 0 || rect.height <= 0) continue;
-            items.push({ text: own, left: rect.left, top: rect.top, h: rect.height });
+            items.push({ text: own, left: rect.left, top: rect.top, h: rect.height, el: e });
         }
 
         var secTop = -1, secBot = 99999;
@@ -127,7 +140,7 @@
             var cl = cleanTitle(it.text);
             if (cl.length < 3 || seen[cl]) continue;
             seen[cl] = true;
-            candidates.push({ text: cl, left: it.left, top: it.top });
+            candidates.push({ text: cl, left: it.left, top: it.top, completed: detectChecked(it.el) });
         }
 
         if (candidates.length === 0) return [];
@@ -148,7 +161,7 @@
             goals.push({
                 id: goalId,
                 title: c.text,
-                completed: false,
+                completed: c.completed,
                 parentId: isChild ? lastParentId : null
             });
             if (!isChild) lastParentId = goalId;
