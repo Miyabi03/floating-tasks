@@ -135,10 +135,15 @@ export function App() {
   const handleAdvanceStatus = useCallback((id: string) => {
     const task = tasks.find(t => t.id === id);
     if (task?.addnessGoalId?.startsWith("addness-goal-")) {
-      const newCompleted = task.status !== "completed";
-      addnessOverridesRef.current.set(task.text, { completed: newCompleted, at: Date.now() });
-      advanceTaskStatus(id);
-      addnessToggleGoal(task.text);
+      // completed/interrupted → pending: Addness側のチェックを外す
+      if (task.status === "completed" || task.status === "interrupted") {
+        addnessOverridesRef.current.set(task.text, { completed: false, at: Date.now() });
+        advanceTaskStatus(id);
+        addnessToggleGoal(task.text);
+      } else {
+        // pending → in_progress: Addness側は変更しない
+        advanceTaskStatus(id);
+      }
     } else {
       advanceTaskStatus(id);
     }
