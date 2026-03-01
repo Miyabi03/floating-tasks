@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import type { Task } from "../types/task";
+import type { Task, TaskStatus } from "../types/task";
 import type { CalendarEvent } from "../types/calendar";
 import type { AddnessGoal } from "../types/addness";
 import { loadTasks, saveTasks } from "../lib/store";
@@ -49,7 +49,7 @@ export function useTasks() {
     const newTask: Task = {
       id: crypto.randomUUID(),
       text: trimmed,
-      completed: false,
+      status: "pending",
       createdAt: new Date().toISOString(),
       parentId,
     };
@@ -57,18 +57,20 @@ export function useTasks() {
     setTasks((prev) => [...prev, newTask]);
   }, []);
 
-  const toggleTask = useCallback((id: string) => {
+  const setTaskStatus = useCallback((id: string, newStatus: TaskStatus) => {
     setTasks((prev) => {
       const target = prev.find((t) => t.id === id);
       if (!target) return prev;
 
-      const newCompleted = !target.completed;
-      const descendantIds = new Set(getDescendantIds(prev, id));
-      const idsToUpdate = new Set<string>([id, ...descendantIds]);
+      if (newStatus === "completed") {
+        // Cascade: complete target + all descendants
+        const descendantIds = new Set(getDescendantIds(prev, id));
+        const idsToUpdate = new Set<string>([id, ...descendantIds]);
 
-      if (newCompleted) {
         // Auto-complete ancestors whose children are all now completed
-        const completedMap = new Map(prev.map((t) => [t.id, t.completed]));
+        const completedMap = new Map(
+          prev.map((t) => [t.id, t.status === "completed"]),
+        );
         for (const did of idsToUpdate) {
           completedMap.set(did, true);
         }
@@ -85,23 +87,72 @@ export function useTasks() {
             break;
           }
         }
-      } else {
-        // Uncomplete all completed ancestors
+
+        return prev.map((task) => {
+          if (idsToUpdate.has(task.id)) return { ...task, status: "completed" as const };
+          return task;
+        });
+      }
+
+      if (newStatus === "pending") {
+        // Uncomplete: set target to pending, uncomplete completed ancestors
+        const idsToUpdate = new Set<string>([id]);
         let currentId = target.parentId;
         while (currentId) {
           const parent = prev.find((t) => t.id === currentId);
           if (!parent) break;
-          if (parent.completed) {
+          if (parent.status === "completed") {
             idsToUpdate.add(currentId);
           }
           currentId = parent.parentId;
         }
+
+        return prev.map((task) => {
+          if (idsToUpdate.has(task.id)) return { ...task, status: "pending" as const };
+          return task;
+        });
       }
 
+      // in_progress or interrupted: only update the target task
       return prev.map((task) => {
-        if (idsToUpdate.has(task.id)) return { ...task, completed: newCompleted };
+        if (task.id === id) return { ...task, status: newStatus };
         return task;
       });
+    });
+  }, []);
+
+  const advanceTaskStatus = useCallback((id: string) => {
+    setTasks((prev) => {
+      const target = prev.find((t) => t.id === id);
+      if (!target) return prev;
+
+      // pending → in_progress (only update the target task)
+      if (target.status === "pending") {
+        return prev.map((task) =>
+          task.id === id ? { ...task, status: "in_progress" as const } : task,
+        );
+      }
+
+      // completed/interrupted → pending (uncomplete ancestors too)
+      if (target.status === "completed" || target.status === "interrupted") {
+        const idsToUpdate = new Set<string>([id]);
+        let currentId = target.parentId;
+        while (currentId) {
+          const parent = prev.find((t) => t.id === currentId);
+          if (!parent) break;
+          if (parent.status === "completed") {
+            idsToUpdate.add(currentId);
+          }
+          currentId = parent.parentId;
+        }
+        return prev.map((task) => {
+          if (idsToUpdate.has(task.id)) return { ...task, status: "pending" as const };
+          return task;
+        });
+      }
+
+      // in_progress: handled by popup, no-op here
+      return prev;
     });
   }, []);
 
@@ -186,7 +237,7 @@ export function useTasks() {
           const section: Task = {
             id: todaySectionId,
             text: "Today",
-            completed: false,
+            status: "pending",
             createdAt: new Date().toISOString(),
             parentId: null,
             calendarEventId: todaySectionId,
@@ -237,7 +288,7 @@ export function useTasks() {
               {
                 id: eventTaskId,
                 text,
-                completed: false,
+                status: "pending" as const,
                 createdAt: new Date().toISOString(),
                 parentId: todaySectionId,
                 calendarEventId: eventTaskId,
@@ -289,7 +340,7 @@ export function useTasks() {
               {
                 id: sectionId,
                 text: "Addness",
-                completed: false,
+                status: "pending" as const,
                 createdAt: new Date().toISOString(),
                 parentId: null,
                 addnessGoalId: sectionMarker,
@@ -317,9 +368,9 @@ export function useTasks() {
           if (
             t.addnessGoalId?.startsWith("addness-goal-") &&
             !incomingIds.has(t.addnessGoalId) &&
-            !t.completed
+            t.status !== "completed"
           ) {
-            return { ...t, completed: true };
+            return { ...t, status: "completed" as const };
           }
           return t;
         });
@@ -333,14 +384,15 @@ export function useTasks() {
           const existing = existingByGoalId.get(goalTaskId);
 
           if (existing) {
+            const goalStatus: TaskStatus = goal.completed ? "completed" : "pending";
             if (
               existing.text !== goal.title ||
-              existing.completed !== goal.completed ||
+              existing.status !== goalStatus ||
               existing.parentId !== taskParentId
             ) {
               next = next.map((t) =>
                 t.id === existing.id
-                  ? { ...t, text: goal.title, completed: goal.completed, parentId: taskParentId }
+                  ? { ...t, text: goal.title, status: goalStatus, parentId: taskParentId }
                   : t,
               );
             }
@@ -350,7 +402,7 @@ export function useTasks() {
               {
                 id: goalTaskId,
                 text: goal.title,
-                completed: goal.completed,
+                status: goal.completed ? "completed" : "pending",
                 createdAt: new Date().toISOString(),
                 parentId: taskParentId,
                 addnessGoalId: goalTaskId,
@@ -363,9 +415,10 @@ export function useTasks() {
         const directChildren = next.filter(
           (t) => t.parentId === sectionTaskId && t.addnessGoalId?.startsWith("addness-goal-"),
         );
-        const allCompleted = directChildren.length > 0 && directChildren.every((c) => c.completed);
+        const allCompleted = directChildren.length > 0 && directChildren.every((c) => c.status === "completed");
+        const sectionStatus: TaskStatus = allCompleted ? "completed" : "pending";
         next = next.map((t) =>
-          t.id === sectionTaskId ? { ...t, completed: allCompleted } : t,
+          t.id === sectionTaskId ? { ...t, status: sectionStatus } : t,
         );
 
         return next;
@@ -382,7 +435,8 @@ export function useTasks() {
     tasks,
     isLoaded,
     addTask,
-    toggleTask,
+    advanceTaskStatus,
+    setTaskStatus,
     deleteTask,
     updateTask,
     indentTask,

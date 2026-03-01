@@ -100,7 +100,7 @@ export function buildVisibleTaskList(
  */
 function isSubtreeCompleted(allTasks: readonly Task[], taskId: string): boolean {
   const task = allTasks.find((t) => t.id === taskId);
-  if (!task || !task.completed) return false;
+  if (!task || task.status !== "completed") return false;
   const children = allTasks.filter((t) => t.parentId === taskId);
   return children.every((c) => isSubtreeCompleted(allTasks, c.id));
 }

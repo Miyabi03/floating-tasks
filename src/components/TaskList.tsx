@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback } from "react";
-import type { Task } from "../types/task";
+import type { Task, TaskStatus } from "../types/task";
 import { TaskItem } from "./TaskItem";
 import { useKeyboardNav } from "../hooks/useKeyboardNav";
 import "./TaskList.css";
@@ -8,7 +8,8 @@ interface TaskListProps {
   readonly rootTasks: readonly Task[];
   readonly tasks: readonly Task[];
   readonly collapsedIds: ReadonlySet<string>;
-  readonly onToggle: (id: string, fromCheckbox?: boolean) => void;
+  readonly onAdvanceStatus: (id: string) => void;
+  readonly onSetStatus: (id: string, status: TaskStatus) => void;
   readonly onDelete: (id: string) => void;
   readonly onAddSub: (text: string, parentId: string) => void;
   readonly onUpdateTask: (id: string, text: string) => void;
@@ -24,7 +25,8 @@ export function TaskList({
   rootTasks,
   tasks,
   collapsedIds,
-  onToggle,
+  onAdvanceStatus,
+  onSetStatus,
   onDelete,
   onAddSub,
   onUpdateTask,
@@ -50,7 +52,8 @@ export function TaskList({
   } = useKeyboardNav({
     tasks,
     collapsedIds,
-    onToggle,
+    onAdvanceStatus,
+    onSetStatus,
     onDelete,
     onIndentTask,
     onOutdentTask,
@@ -104,7 +107,8 @@ export function TaskList({
           selectedTaskId={selectedTaskId}
           editingTaskId={editingTaskId}
           subInputTaskId={subInputTaskId}
-          onToggle={onToggle}
+          onAdvanceStatus={onAdvanceStatus}
+          onSetStatus={onSetStatus}
           onDelete={onDelete}
           onAddSub={onAddSub}
           onUpdateTask={onUpdateTask}

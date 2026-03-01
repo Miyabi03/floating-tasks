@@ -1,7 +1,9 @@
-import type { Task } from "../types/task";
+import { useState } from "react";
+import type { Task, TaskStatus } from "../types/task";
 import { MAX_DEPTH } from "../utils/taskTree";
 import { TaskInput } from "./TaskInput";
 import { InlineEditor } from "./InlineEditor";
+import { TaskStatusPopup } from "./TaskStatusPopup";
 import "./TaskItem.css";
 
 interface TaskItemProps {
@@ -11,7 +13,8 @@ interface TaskItemProps {
   readonly selectedTaskId: string | null;
   readonly editingTaskId: string | null;
   readonly subInputTaskId: string | null;
-  readonly onToggle: (id: string, fromCheckbox?: boolean) => void;
+  readonly onAdvanceStatus: (id: string) => void;
+  readonly onSetStatus: (id: string, status: TaskStatus) => void;
   readonly onDelete: (id: string) => void;
   readonly onAddSub: (text: string, parentId: string) => void;
   readonly onUpdateTask: (id: string, text: string) => void;
@@ -25,6 +28,13 @@ interface TaskItemProps {
   readonly onCancelSubInput: () => void;
 }
 
+const statusAriaLabels: Record<TaskStatus, string> = {
+  pending: "進行中にする",
+  in_progress: "完了または中断にする",
+  completed: "未着手に戻す",
+  interrupted: "未着手に戻す",
+};
+
 export function TaskItem({
   task,
   children,
@@ -32,7 +42,8 @@ export function TaskItem({
   selectedTaskId,
   editingTaskId,
   subInputTaskId,
-  onToggle,
+  onAdvanceStatus,
+  onSetStatus,
   onDelete,
   onAddSub,
   onUpdateTask,
@@ -45,9 +56,10 @@ export function TaskItem({
   onCancelEditing,
   onCancelSubInput,
 }: TaskItemProps) {
+  const [showPopup, setShowPopup] = useState(false);
   const expanded = isExpanded(task.id);
   const hasChildren = children.length > 0;
-  const completedCount = children.filter((c) => c.completed).length;
+  const completedCount = children.filter((c) => c.status === "completed").length;
   const isSelected = selectedTaskId === task.id;
   const isEditing = editingTaskId === task.id;
   const showSubInput = subInputTaskId === task.id;
@@ -81,13 +93,49 @@ export function TaskItem({
     onCancelEditing();
   };
 
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isReadOnly) return;
+
+    if (task.status === "in_progress") {
+      setShowPopup(true);
+    } else {
+      onAdvanceStatus(task.id);
+    }
+  };
+
+  const handlePopupComplete = () => {
+    setShowPopup(false);
+    onSetStatus(task.id, "completed");
+  };
+
+  const handlePopupInterrupt = () => {
+    setShowPopup(false);
+    onSetStatus(task.id, "interrupted");
+  };
+
+  const statusClass = `task-item--${task.status}`;
+
   const className = [
     "task-item",
-    task.completed ? "task-item--completed" : "",
+    statusClass,
     isSelected ? "task-item--selected" : "",
   ]
     .filter(Boolean)
     .join(" ");
+
+  const checkboxContent = (() => {
+    switch (task.status) {
+      case "completed":
+        return <span className="task-check-icon">{"\u2713"}</span>;
+      case "interrupted":
+        return <span className="task-pause-icon">{"\u23F8"}</span>;
+      case "in_progress":
+        return null;
+      default:
+        return null;
+    }
+  })();
 
   return (
     <div className="task-item-group">
@@ -111,17 +159,23 @@ export function TaskItem({
           <span className="task-expand-spacer" />
         )}
 
-        <button
-          className="task-checkbox"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (!isReadOnly) onToggle(task.id, true);
-          }}
-          aria-label={task.completed ? "未完了に戻す" : "完了にする"}
-          style={isReadOnly ? { cursor: "default", opacity: 0.6 } : undefined}
-        >
-          {task.completed && <span className="task-check-icon">{"\u2713"}</span>}
-        </button>
+        <div className="task-checkbox-wrapper">
+          <button
+            className="task-checkbox"
+            onClick={handleCheckboxClick}
+            aria-label={statusAriaLabels[task.status]}
+            style={isReadOnly ? { cursor: "default", opacity: 0.6 } : undefined}
+          >
+            {checkboxContent}
+          </button>
+          {showPopup && (
+            <TaskStatusPopup
+              onComplete={handlePopupComplete}
+              onInterrupt={handlePopupInterrupt}
+              onClose={() => setShowPopup(false)}
+            />
+          )}
+        </div>
 
         {task.recurringTemplateId && (
           <span className="task-recurring-icon" title="Recurring task">{"\u21BB"}</span>
@@ -199,7 +253,8 @@ export function TaskItem({
             selectedTaskId={selectedTaskId}
             editingTaskId={editingTaskId}
             subInputTaskId={subInputTaskId}
-            onToggle={onToggle}
+            onAdvanceStatus={onAdvanceStatus}
+            onSetStatus={onSetStatus}
             onDelete={onDelete}
             onAddSub={onAddSub}
             onUpdateTask={onUpdateTask}

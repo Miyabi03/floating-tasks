@@ -1,11 +1,12 @@
 import { useState, useCallback, useMemo } from "react";
-import type { Task } from "../types/task";
+import type { Task, TaskStatus } from "../types/task";
 import { buildVisibleTaskList } from "../utils/taskTree";
 
 interface UseKeyboardNavOptions {
   readonly tasks: readonly Task[];
   readonly collapsedIds: ReadonlySet<string>;
-  readonly onToggle: (id: string, fromCheckbox?: boolean) => void;
+  readonly onAdvanceStatus: (id: string) => void;
+  readonly onSetStatus: (id: string, status: TaskStatus) => void;
   readonly onDelete: (id: string) => void;
   readonly onIndentTask: (id: string) => void;
   readonly onOutdentTask: (id: string) => void;
@@ -15,7 +16,8 @@ interface UseKeyboardNavOptions {
 export function useKeyboardNav({
   tasks,
   collapsedIds,
-  onToggle,
+  onAdvanceStatus,
+  onSetStatus,
   onDelete,
   onIndentTask,
   onOutdentTask,
@@ -139,7 +141,15 @@ export function useKeyboardNav({
         case " ": {
           e.preventDefault();
           if (selectedTaskId && visibleIds.includes(selectedTaskId)) {
-            onToggle(selectedTaskId);
+            const task = tasks.find((t) => t.id === selectedTaskId);
+            if (!task) break;
+            // pending → in_progress, in_progress → completed (keyboard skips popup),
+            // completed/interrupted → pending
+            if (task.status === "in_progress") {
+              onSetStatus(selectedTaskId, "completed");
+            } else {
+              onAdvanceStatus(selectedTaskId);
+            }
           }
           break;
         }
@@ -173,7 +183,9 @@ export function useKeyboardNav({
       selectedTaskId,
       editingTaskId,
       subInputTaskId,
-      onToggle,
+      tasks,
+      onAdvanceStatus,
+      onSetStatus,
       onDelete,
       onIndentTask,
       onOutdentTask,

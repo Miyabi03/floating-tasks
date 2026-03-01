@@ -43,6 +43,11 @@
   flex-shrink: 0;
 }
 
+.task-checkbox-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .task-checkbox {
   width: 16px;
   height: 16px;
@@ -62,14 +67,34 @@
   border-color: var(--accent);
 }
 
+/* completed: blue background + check */
 .task-item--completed .task-checkbox {
   background: var(--accent);
   border-color: var(--accent);
 }
 
+/* in_progress: orange background */
+.task-item--in_progress .task-checkbox {
+  background: #f59e0b;
+  border-color: #f59e0b;
+}
+
+/* interrupted: orange background */
+.task-item--interrupted .task-checkbox {
+  background: #f59e0b;
+  border-color: #f59e0b;
+}
+
 .task-check-icon {
   color: #fff;
   font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.task-pause-icon {
+  color: #fff;
+  font-size: 8px;
   font-weight: 700;
   line-height: 1;
 }
@@ -155,4 +180,50 @@
 
 .task-item--selected .task-actions {
   opacity: 1;
+}
+
+/* Status popup */
+.task-status-popup {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 4px;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  white-space: nowrap;
+}
+
+.task-status-popup__btn {
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.task-status-popup__btn--complete {
+  background: var(--accent);
+  color: #fff;
+}
+
+.task-status-popup__btn--complete:hover {
+  filter: brightness(1.1);
+}
+
+.task-status-popup__btn--interrupt {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.task-status-popup__btn--interrupt:hover {
+  filter: brightness(1.1);
 }

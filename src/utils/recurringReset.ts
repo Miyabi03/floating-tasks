@@ -44,7 +44,7 @@ export function performReset(
 ): readonly Task[] {
   const today = getLogicalDate(now);
 
-  const carryOver = tasks.filter((t) => !t.recurringTemplateId && !t.completed);
+  const carryOver = tasks.filter((t) => !t.recurringTemplateId && t.status !== "completed");
   const carryOverIds = new Set(carryOver.map((t) => t.id));
   const withOrphansPromoted = carryOver.map((t) =>
     t.parentId && !carryOverIds.has(t.parentId) ? { ...t, parentId: null } : t,
@@ -64,7 +64,7 @@ export function performReset(
       const task: Task = {
         id,
         text: sub.text,
-        completed: false,
+        status: "pending" as const,
         createdAt: now.toISOString(),
         parentId,
         recurringTemplateId: templateId,
@@ -78,7 +78,7 @@ export function performReset(
     const root: Task = {
       id: rootId,
       text: tpl.text,
-      completed: false,
+      status: "pending" as const,
       createdAt: now.toISOString(),
       parentId: null,
       recurringTemplateId: tpl.id,

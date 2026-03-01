@@ -1,5 +1,5 @@
 import { load } from "@tauri-apps/plugin-store";
-import type { Task } from "../types/task";
+import type { Task, TaskStatus } from "../types/task";
 import type { GoogleTokens } from "../types/calendar";
 import type { RecurringSubTask, RecurringTaskTemplate, RecurringResetState } from "../types/recurring";
 
@@ -19,10 +19,22 @@ async function getStore() {
   return storeInstance;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function migrateTask(raw: any): Task {
+  if ("status" in raw && typeof raw.status === "string") {
+    return raw as Task;
+  }
+  const status: TaskStatus = raw.completed ? "completed" : "pending";
+  const { completed: _, ...rest } = raw;
+  return { ...rest, status };
+}
+
 export async function loadTasks(): Promise<Task[]> {
   const store = await getStore();
-  const tasks = await store.get<Task[]>("tasks");
-  return tasks ?? [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const raw = await store.get<any[]>("tasks");
+  if (!raw) return [];
+  return raw.map(migrateTask);
 }
 
 export async function saveTasks(tasks: readonly Task[]): Promise<void> {

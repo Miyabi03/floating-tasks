@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { getCurrentWindow, currentMonitor } from "@tauri-apps/api/window";
 import { LogicalPosition } from "@tauri-apps/api/dpi";
 import type { AddnessGoal } from "./types/addness";
+import type { TaskStatus } from "./types/task";
 import { TitleBar } from "./components/TitleBar";
 import { TaskInput } from "./components/TaskInput";
 import { TaskList } from "./components/TaskList";
@@ -27,7 +28,8 @@ export function App() {
   const [showSettings, setShowSettings] = useState(false);
   const {
     addTask,
-    toggleTask,
+    advanceTaskStatus,
+    setTaskStatus,
     deleteTask,
     updateTask,
     indentTask,
@@ -130,19 +132,31 @@ export function App() {
     }
   }, [resolvedGoals, syncAddnessGoals]);
 
-  const handleToggle = useCallback((id: string, fromCheckbox?: boolean) => {
+  const handleAdvanceStatus = useCallback((id: string) => {
     const task = tasks.find(t => t.id === id);
     if (task?.addnessGoalId?.startsWith("addness-goal-")) {
-      const newCompleted = !task.completed;
+      const newCompleted = task.status !== "completed";
       addnessOverridesRef.current.set(task.text, { completed: newCompleted, at: Date.now() });
-      toggleTask(id);
-      if (fromCheckbox) {
+      advanceTaskStatus(id);
+      addnessToggleGoal(task.text);
+    } else {
+      advanceTaskStatus(id);
+    }
+  }, [tasks, advanceTaskStatus, addnessToggleGoal]);
+
+  const handleSetStatus = useCallback((id: string, status: TaskStatus) => {
+    const task = tasks.find(t => t.id === id);
+    if (task?.addnessGoalId?.startsWith("addness-goal-")) {
+      const newCompleted = status === "completed";
+      addnessOverridesRef.current.set(task.text, { completed: newCompleted, at: Date.now() });
+      setTaskStatus(id, status);
+      if (newCompleted !== (task.status === "completed")) {
         addnessToggleGoal(task.text);
       }
     } else {
-      toggleTask(id);
+      setTaskStatus(id, status);
     }
-  }, [tasks, toggleTask, addnessToggleGoal]);
+  }, [tasks, setTaskStatus, addnessToggleGoal]);
 
   const handleAddRoot = (text: string) => addTask(text, null);
   const handleAddSub = (text: string, parentId: string) => {
@@ -202,7 +216,8 @@ export function App() {
         rootTasks={getRootTasks()}
         tasks={tasks}
         collapsedIds={collapsedIds}
-        onToggle={handleToggle}
+        onAdvanceStatus={handleAdvanceStatus}
+        onSetStatus={handleSetStatus}
         onDelete={deleteTask}
         onAddSub={handleAddSub}
         onUpdateTask={updateTask}
