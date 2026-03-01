@@ -143,9 +143,9 @@ export function useKeyboardNav({
           if (selectedTaskId && visibleIds.includes(selectedTaskId)) {
             const task = tasks.find((t) => t.id === selectedTaskId);
             if (!task) break;
-            // pending → in_progress, in_progress → completed (keyboard skips popup),
-            // completed/interrupted → pending
-            if (task.status === "in_progress") {
+            // pending → in_progress, in_progress/interrupted → completed,
+            // completed → pending
+            if (task.status === "in_progress" || task.status === "interrupted") {
               onSetStatus(selectedTaskId, "completed");
             } else {
               onAdvanceStatus(selectedTaskId);

@@ -135,9 +135,14 @@ export function App() {
   const handleAdvanceStatus = useCallback((id: string) => {
     const task = tasks.find(t => t.id === id);
     if (task?.addnessGoalId?.startsWith("addness-goal-")) {
-      // completed/interrupted → pending: Addness側のチェックを外す
-      if (task.status === "completed" || task.status === "interrupted") {
+      if (task.status === "completed") {
+        // completed → pending: Addness側のチェックを外す
         addnessOverridesRef.current.set(task.text, { completed: false, at: Date.now() });
+        advanceTaskStatus(id);
+        addnessToggleGoal(task.text);
+      } else if (task.status === "interrupted") {
+        // interrupted → completed: Addness側にチェックを入れる
+        addnessOverridesRef.current.set(task.text, { completed: true, at: Date.now() });
         advanceTaskStatus(id);
         addnessToggleGoal(task.text);
       } else {

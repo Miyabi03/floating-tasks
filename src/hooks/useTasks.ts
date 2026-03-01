@@ -133,8 +133,8 @@ export function useTasks() {
         );
       }
 
-      // completed/interrupted → pending (uncomplete ancestors too)
-      if (target.status === "completed" || target.status === "interrupted") {
+      // completed → pending (uncomplete ancestors too)
+      if (target.status === "completed") {
         const idsToUpdate = new Set<string>([id]);
         let currentId = target.parentId;
         while (currentId) {
@@ -151,7 +151,38 @@ export function useTasks() {
         });
       }
 
-      // in_progress: handled by popup, no-op here
+      // interrupted → completed (cascade to children + auto-complete parents)
+      if (target.status === "interrupted") {
+        const descendantIds = new Set(getDescendantIds(prev, id));
+        const idsToUpdate = new Set<string>([id, ...descendantIds]);
+
+        const completedMap = new Map(
+          prev.map((t) => [t.id, t.status === "completed"]),
+        );
+        for (const did of idsToUpdate) {
+          completedMap.set(did, true);
+        }
+        let currentId = target.parentId;
+        while (currentId) {
+          const parent = prev.find((t) => t.id === currentId);
+          if (!parent) break;
+          const children = prev.filter((t) => t.parentId === currentId);
+          if (children.every((c) => completedMap.get(c.id) === true)) {
+            idsToUpdate.add(currentId);
+            completedMap.set(currentId, true);
+            currentId = parent.parentId;
+          } else {
+            break;
+          }
+        }
+
+        return prev.map((task) => {
+          if (idsToUpdate.has(task.id)) return { ...task, status: "completed" as const };
+          return task;
+        });
+      }
+
+      // in_progress: handled by inline buttons, no-op here
       return prev;
     });
   }, []);

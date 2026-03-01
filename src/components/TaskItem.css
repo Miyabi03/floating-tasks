@@ -43,11 +43,6 @@
   flex-shrink: 0;
 }
 
-.task-checkbox-wrapper {
-  position: relative;
-  flex-shrink: 0;
-}
-
 .task-checkbox {
   width: 16px;
   height: 16px;
@@ -182,48 +177,39 @@
   opacity: 1;
 }
 
-/* Status popup */
-.task-status-popup {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-top: 4px;
+/* In-progress inline action buttons */
+.task-status-actions {
   display: flex;
-  gap: 4px;
-  padding: 4px;
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 100;
-  white-space: nowrap;
+  gap: 3px;
+  flex-shrink: 0;
 }
 
-.task-status-popup__btn {
+.task-status-btn {
+  width: 20px;
+  height: 20px;
   border: none;
   border-radius: 6px;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 600;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #fff;
+  font-weight: 700;
+  transition: filter 0.12s;
 }
 
-.task-status-popup__btn--complete {
+.task-status-btn--complete {
   background: var(--accent);
-  color: #fff;
+  font-size: 11px;
 }
 
-.task-status-popup__btn--complete:hover {
-  filter: brightness(1.1);
-}
-
-.task-status-popup__btn--interrupt {
+.task-status-btn--interrupt {
   background: #f59e0b;
-  color: #fff;
+  font-size: 8px;
+  letter-spacing: -1px;
 }
 
-.task-status-popup__btn--interrupt:hover {
-  filter: brightness(1.1);
+.task-status-btn:hover {
+  filter: brightness(1.15);
 }
