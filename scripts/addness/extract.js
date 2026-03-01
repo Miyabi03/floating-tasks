@@ -118,18 +118,22 @@
 
         var goals = [];
         var idx = 0;
-        var lastParentId = null;
+        var stack = []; // [{id, left}] — ancestors from root to current parent
         for (var i = 0; i < candidates.length; i++) {
             var c = candidates[i];
-            var isChild = c.left > minLeft + 15;
             var goalId = 'addness-' + idx;
+            // Pop stack until we find an ancestor with smaller left position
+            while (stack.length > 0 && stack[stack.length - 1].left >= c.left - 15) {
+                stack.pop();
+            }
+            var parentId = stack.length > 0 ? stack[stack.length - 1].id : null;
             goals.push({
                 id: goalId,
                 title: c.text,
                 completed: c.completed,
-                parentId: isChild ? lastParentId : null
+                parentId: parentId
             });
-            if (!isChild) lastParentId = goalId;
+            stack.push({ id: goalId, left: c.left });
             idx++;
         }
         return goals;
