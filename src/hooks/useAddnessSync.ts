@@ -204,7 +204,20 @@ export function useAddnessSync(): UseAddnessSyncReturn {
     const toggleJs = await getToggleJs();
     if (!toggleJs) return;
     const jsCode = `window.__ADDNESS_TOGGLE_TARGET__=${JSON.stringify(goalTitle)};\n${toggleJs}`;
-    await invoke("addness_eval_js", { jsCode });
+    try {
+      await invoke("addness_eval_js", { jsCode });
+    } catch {
+      // WebViewが閉じている場合 — 再作成してリトライ
+      windowReadyRef.current = false;
+      try {
+        await invoke("addness_start_sync");
+        windowReadyRef.current = true;
+        await new Promise((resolve) => setTimeout(resolve, INITIAL_FETCH_DELAY));
+        await invoke("addness_eval_js", { jsCode });
+      } catch {
+        // 再作成にも失敗
+      }
+    }
   }, []);
 
   return { goals, isConnected, isLoading, error, connect, disconnect, refresh, toggleGoal };
