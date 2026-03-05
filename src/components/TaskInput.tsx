@@ -18,12 +18,24 @@ export function TaskInput({
 }: TaskInputProps) {
   const [value, setValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const composingRef = useRef(false);
 
   useEffect(() => {
     if (autoFocus) {
       inputRef.current?.focus();
     }
   }, [autoFocus]);
+
+  const handleCompositionStart = () => {
+    composingRef.current = true;
+  };
+
+  const handleCompositionEnd = () => {
+    composingRef.current = true;
+    setTimeout(() => {
+      composingRef.current = false;
+    }, 50);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +48,7 @@ export function TaskInput({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     e.stopPropagation();
     if (e.key === "Enter") {
+      if (e.nativeEvent.isComposing || composingRef.current) return;
       handleSubmit(e);
     } else if (e.key === "Escape" && onCancel) {
       onCancel();
@@ -55,6 +68,8 @@ export function TaskInput({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
+        onCompositionStart={handleCompositionStart}
+        onCompositionEnd={handleCompositionEnd}
       />
     </div>
   );

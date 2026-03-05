@@ -6,9 +6,11 @@ import type { TaskStatus } from "./types/task";
 import { TitleBar } from "./components/TitleBar";
 import { TaskInput } from "./components/TaskInput";
 import { TaskList } from "./components/TaskList";
+import { ConfirmDialog } from "./components/ConfirmDialog";
 import { LoginScreen } from "./components/LoginScreen";
 import { SettingsScreen } from "./components/SettingsScreen";
 import { useTasks } from "./hooks/useTasks";
+import { useUndoHistory } from "./hooks/useUndoHistory";
 import { useTheme } from "./hooks/useTheme";
 import { useDailyMessage } from "./hooks/useDailyMessage";
 import { useExpandedState } from "./hooks/useExpandedState";
@@ -26,6 +28,8 @@ export function App() {
   const appRef = useRef<HTMLDivElement>(null);
   useClickRipple(appRef);
   const [showSettings, setShowSettings] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; message: string } | null>(null);
+  const { pushSnapshot, popSnapshot } = useUndoHistory();
   const {
     addTask,
     advanceTaskStatus,
@@ -42,7 +46,7 @@ export function App() {
     syncCalendarEvents,
     syncAddnessGoals,
     resetTasks,
-  } = useTasks();
+  } = useTasks({ pushSnapshot });
   const { theme, toggleTheme } = useTheme();
   const dailyMessage = useDailyMessage();
   const { collapsedIds, isExpanded, toggleExpanded, expandTask } = useExpandedState();
@@ -74,6 +78,23 @@ export function App() {
   const addnessOverridesRef = useRef<Map<string, { completed: boolean; at: number }>>(new Map());
 
   useRecurringReset(tasks, templates, isLoaded, templatesLoaded, resetTasks);
+
+  // Global Cmd+Z / Ctrl+Z undo handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "z" && !e.shiftKey) {
+        // Skip undo while confirmation dialog is open
+        if (deleteConfirm) return;
+        e.preventDefault();
+        const snapshot = popSnapshot();
+        if (snapshot) {
+          resetTasks(snapshot);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [popSnapshot, resetTasks, deleteConfirm]);
 
   useEffect(() => {
     const positionWindow = async () => {
@@ -174,6 +195,31 @@ export function App() {
     expandTask(parentId);
   };
 
+  const handleDelete = useCallback((id: string) => {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    const childCount = tasks.filter((t) => t.parentId === id).length;
+    if (childCount > 0) {
+      setDeleteConfirm({
+        id,
+        message: `「${task.text}」と${childCount}件のサブタスクを削除しますか？`,
+      });
+    } else {
+      deleteTask(id);
+    }
+  }, [tasks, deleteTask]);
+
+  const confirmDelete = useCallback(() => {
+    if (deleteConfirm) {
+      deleteTask(deleteConfirm.id);
+      setDeleteConfirm(null);
+    }
+  }, [deleteConfirm, deleteTask]);
+
+  const cancelDelete = useCallback(() => {
+    setDeleteConfirm(null);
+  }, []);
+
   if (isLoading) {
     return (
       <div className="app" ref={appRef}>
@@ -228,7 +274,7 @@ export function App() {
         collapsedIds={collapsedIds}
         onAdvanceStatus={handleAdvanceStatus}
         onSetStatus={handleSetStatus}
-        onDelete={deleteTask}
+        onDelete={handleDelete}
         onAddSub={handleAddSub}
         onUpdateTask={updateTask}
         onIndentTask={indentTask}
@@ -238,6 +284,13 @@ export function App() {
         isExpanded={isExpanded}
         toggleExpanded={toggleExpanded}
       />
+      {deleteConfirm && (
+        <ConfirmDialog
+          message={deleteConfirm.message}
+          onConfirm={confirmDelete}
+          onCancel={cancelDelete}
+        />
+      )}
     </div>
   );
 }

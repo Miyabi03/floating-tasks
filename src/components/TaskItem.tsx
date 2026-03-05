@@ -61,6 +61,8 @@ export function TaskItem({
   const isEditing = editingTaskId === task.id;
   const showSubInput = subInputTaskId === task.id;
   const isAddnessGoal = task.addnessGoalId?.startsWith("addness-goal-") ?? false;
+  const isCalendarSection = task.calendarEventId?.startsWith("gcal-today-") ?? false;
+  const isAddnessSection = task.addnessGoalId === "addness-section";
   const isReadOnly = task.addnessGoalId !== undefined && !isAddnessGoal;
 
   const handleAddSub = (text: string) => {
@@ -183,8 +185,24 @@ export function TaskItem({
 
         {renderCheckboxArea()}
 
+        {isCalendarSection && (
+          <span className="task-type-icon task-type-icon--calendar" title="Calendar">{"\u25C6"}</span>
+        )}
+
+        {task.calendarEventId?.startsWith("gcal-evt-") && (
+          <span className="task-type-icon task-type-icon--calendar" title="Calendar event">{"\u25C6"}</span>
+        )}
+
+        {isAddnessSection && (
+          <span className="task-type-icon task-type-icon--addness" title="Addness">{"\u2605"}</span>
+        )}
+
+        {task.addnessGoalId?.startsWith("addness-goal-") && (
+          <span className="task-type-icon task-type-icon--addness" title="Addness goal">{"\u2605"}</span>
+        )}
+
         {task.recurringTemplateId && (
-          <span className="task-recurring-icon" title="Recurring task">{"\u21BB"}</span>
+          <span className="task-type-icon task-type-icon--recurring" title="Recurring task">{"\u21BB"}</span>
         )}
 
         {isEditing ? (

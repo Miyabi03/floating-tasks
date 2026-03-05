@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { Task, TaskStatus } from "../types/task";
 import type { CalendarEvent } from "../types/calendar";
 import type { AddnessGoal } from "../types/addness";
@@ -10,6 +10,10 @@ import {
   moveTaskInArray,
   sortByCompletion,
 } from "../utils/taskTree";
+
+interface UseTasksOptions {
+  readonly pushSnapshot?: (tasks: readonly Task[]) => void;
+}
 
 function formatEventTime(isoString: string): string {
   return new Date(isoString).toLocaleTimeString([], {
@@ -25,9 +29,17 @@ function buildEventText(event: CalendarEvent): string {
   return `${time}  ${event.summary}`;
 }
 
-export function useTasks() {
+export function useTasks(options: UseTasksOptions = {}) {
   const [tasks, setTasks] = useState<readonly Task[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const pushSnapshotRef = useRef(options.pushSnapshot);
+  pushSnapshotRef.current = options.pushSnapshot;
+  const tasksRef = useRef(tasks);
+  tasksRef.current = tasks;
+
+  const recordSnapshot = useCallback(() => {
+    pushSnapshotRef.current?.(tasksRef.current);
+  }, []);
 
   useEffect(() => {
     loadTasks().then((loaded) => {
@@ -58,6 +70,7 @@ export function useTasks() {
   }, []);
 
   const setTaskStatus = useCallback((id: string, newStatus: TaskStatus) => {
+    recordSnapshot();
     setTasks((prev) => {
       const target = prev.find((t) => t.id === id);
       if (!target) return prev;
@@ -119,9 +132,10 @@ export function useTasks() {
         return task;
       });
     });
-  }, []);
+  }, [recordSnapshot]);
 
   const advanceTaskStatus = useCallback((id: string) => {
+    recordSnapshot();
     setTasks((prev) => {
       const target = prev.find((t) => t.id === id);
       if (!target) return prev;
@@ -185,14 +199,15 @@ export function useTasks() {
       // in_progress: handled by inline buttons, no-op here
       return prev;
     });
-  }, []);
+  }, [recordSnapshot]);
 
   const deleteTask = useCallback((id: string) => {
+    recordSnapshot();
     setTasks((prev) => {
       const descendantIds = new Set(getDescendantIds(prev, id));
       return prev.filter((t) => t.id !== id && !descendantIds.has(t.id));
     });
-  }, []);
+  }, [recordSnapshot]);
 
   const getRootTasks = useCallback(() => {
     const roots = tasks.filter((t) => t.parentId === null);
@@ -210,22 +225,26 @@ export function useTasks() {
   const updateTask = useCallback((id: string, text: string) => {
     const trimmed = text.trim();
     if (!trimmed) return;
+    recordSnapshot();
     setTasks((prev) =>
       prev.map((t) => (t.id === id ? { ...t, text: trimmed } : t))
     );
-  }, []);
+  }, [recordSnapshot]);
 
   const indentTask = useCallback((id: string) => {
+    recordSnapshot();
     setTasks((prev) => indentTaskTree(prev, id));
-  }, []);
+  }, [recordSnapshot]);
 
   const outdentTask = useCallback((id: string) => {
+    recordSnapshot();
     setTasks((prev) => outdentTaskTree(prev, id));
-  }, []);
+  }, [recordSnapshot]);
 
   const moveTask = useCallback((taskId: string, newIndex: number) => {
+    recordSnapshot();
     setTasks((prev) => moveTaskInArray(prev, taskId, newIndex));
-  }, []);
+  }, [recordSnapshot]);
 
   const syncCalendarEvents = useCallback(
     (events: readonly CalendarEvent[]) => {
@@ -358,6 +377,24 @@ export function useTasks() {
 
   const syncAddnessGoals = useCallback(
     (goals: readonly AddnessGoal[]) => {
+      // Topological sort: ensure parents are processed before children
+      const sorted: AddnessGoal[] = [];
+      const visited = new Set<string>();
+      const goalMap = new Map(goals.map((g) => [g.id, g]));
+
+      const visit = (goal: AddnessGoal) => {
+        if (visited.has(goal.id)) return;
+        visited.add(goal.id);
+        if (goal.parentId && goalMap.has(goal.parentId)) {
+          visit(goalMap.get(goal.parentId)!);
+        }
+        sorted.push(goal);
+      };
+      for (const goal of goals) visit(goal);
+
+      // Build set of valid goal IDs for parentId validation
+      const validGoalIds = new Set(sorted.map((g) => g.id));
+
       setTasks((prev) => {
         const sectionMarker = "addness-section";
         const sectionId = "addness-section";
@@ -391,7 +428,7 @@ export function useTasks() {
         );
 
         const incomingIds = new Set(
-          goals.map((g) => `addness-goal-${g.id}`),
+          sorted.map((g) => `addness-goal-${g.id}`),
         );
 
         // Mark tasks for goals no longer present as completed (any depth)
@@ -406,12 +443,14 @@ export function useTasks() {
           return t;
         });
 
-        // Upsert goal tasks (supports hierarchy via goal.parentId)
-        for (const goal of goals) {
+        // Upsert goal tasks in topological order (parents first)
+        for (const goal of sorted) {
           const goalTaskId = `addness-goal-${goal.id}`;
-          const taskParentId = goal.parentId
-            ? `addness-goal-${goal.parentId}`
-            : sectionTaskId;
+          // Validate parentId: fall back to section if parent doesn't exist
+          const taskParentId =
+            goal.parentId && validGoalIds.has(goal.parentId)
+              ? `addness-goal-${goal.parentId}`
+              : sectionTaskId;
           const existing = existingByGoalId.get(goalTaskId);
 
           if (existing) {
@@ -441,6 +480,20 @@ export function useTasks() {
             ];
           }
         }
+
+        // Recover orphans: if a goal task's parent no longer exists, move to section
+        const allTaskIds = new Set(next.map((t) => t.id));
+        next = next.map((t) => {
+          if (
+            t.addnessGoalId?.startsWith("addness-goal-") &&
+            t.parentId &&
+            t.parentId !== sectionTaskId &&
+            !allTaskIds.has(t.parentId)
+          ) {
+            return { ...t, parentId: sectionTaskId };
+          }
+          return t;
+        });
 
         // Update section completion based on direct children
         const directChildren = next.filter(

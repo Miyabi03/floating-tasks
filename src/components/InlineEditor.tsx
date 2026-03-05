@@ -10,16 +10,29 @@ interface InlineEditorProps {
 export function InlineEditor({ initialText, onConfirm, onCancel }: InlineEditorProps) {
   const [value, setValue] = useState(initialText);
   const inputRef = useRef<HTMLInputElement>(null);
+  const composingRef = useRef(false);
 
   useEffect(() => {
     inputRef.current?.focus();
     inputRef.current?.select();
   }, []);
 
+  const handleCompositionStart = () => {
+    composingRef.current = true;
+  };
+
+  const handleCompositionEnd = () => {
+    composingRef.current = true;
+    setTimeout(() => {
+      composingRef.current = false;
+    }, 50);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     e.stopPropagation();
     if (e.key === "Enter") {
       e.preventDefault();
+      if (e.nativeEvent.isComposing || composingRef.current) return;
       const trimmed = value.trim();
       if (trimmed) {
         onConfirm(trimmed);
@@ -49,6 +62,8 @@ export function InlineEditor({ initialText, onConfirm, onCancel }: InlineEditorP
       value={value}
       onChange={(e) => setValue(e.target.value)}
       onKeyDown={handleKeyDown}
+      onCompositionStart={handleCompositionStart}
+      onCompositionEnd={handleCompositionEnd}
       onBlur={handleBlur}
       onClick={(e) => e.stopPropagation()}
     />
