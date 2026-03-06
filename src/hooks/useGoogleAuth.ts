@@ -55,8 +55,8 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
     init();
   }, []);
 
-  const signIn = useCallback(async () => {
-    const authUrl = buildAuthUrl();
+  const startAuthFlow = useCallback(async (forceConsent: boolean): Promise<GoogleTokens> => {
+    const authUrl = buildAuthUrl(forceConsent);
 
     const codePromise = new Promise<string>((resolve, reject) => {
       let settled = false;
@@ -82,10 +82,20 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
     });
 
     const code = await codePromise;
-    const newTokens = await exchangeCodeForTokens(code);
+    return exchangeCodeForTokens(code);
+  }, []);
+
+  const signIn = useCallback(async () => {
+    let newTokens = await startAuthFlow(false);
+
+    // If no refresh_token returned (previously consented), retry with forced consent
+    if (!newTokens.refreshToken) {
+      newTokens = await startAuthFlow(true);
+    }
+
     await saveGoogleTokens(newTokens);
     setTokens(newTokens);
-  }, []);
+  }, [startAuthFlow]);
 
   const signOut = useCallback(async () => {
     await clearGoogleTokens();

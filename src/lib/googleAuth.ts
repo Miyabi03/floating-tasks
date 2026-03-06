@@ -10,14 +10,14 @@ const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 
 export { REDIRECT_PORT };
 
-export function buildAuthUrl(): string {
+export function buildAuthUrl(forceConsent = false): string {
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
     redirect_uri: REDIRECT_URI,
     response_type: "code",
     scope: SCOPES,
     access_type: "offline",
-    prompt: "consent",
+    prompt: forceConsent ? "consent" : "select_account",
   });
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 }
