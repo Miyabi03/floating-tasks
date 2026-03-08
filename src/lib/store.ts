@@ -128,43 +128,4 @@ export async function saveAddnessConnected(connected: boolean): Promise<void> {
   await store.set("addnessConnected", connected);
 }
 
-export async function loadAddnessExtractJs(): Promise<string | null> {
-  const store = await getStore();
-  return (await store.get<string>("addnessExtractJs")) ?? null;
-}
-
-export async function saveAddnessExtractJs(code: string): Promise<void> {
-  const store = await getStore();
-  await store.set("addnessExtractJs", code);
-}
-
-export async function loadAddnessJsFetchedAt(): Promise<number> {
-  const store = await getStore();
-  return (await store.get<number>("addnessJsFetchedAt")) ?? 0;
-}
-
-export async function saveAddnessJsFetchedAt(ts: number): Promise<void> {
-  const store = await getStore();
-  await store.set("addnessJsFetchedAt", ts);
-}
-
-export async function loadAddnessToggleJs(): Promise<string | null> {
-  const store = await getStore();
-  return (await store.get<string>("addnessToggleJs")) ?? null;
-}
-
-export async function saveAddnessToggleJs(code: string): Promise<void> {
-  const store = await getStore();
-  await store.set("addnessToggleJs", code);
-}
-
-export async function loadAddnessToggleJsFetchedAt(): Promise<number> {
-  const store = await getStore();
-  return (await store.get<number>("addnessToggleJsFetchedAt")) ?? 0;
-}
-
-export async function saveAddnessToggleJsFetchedAt(ts: number): Promise<void> {
-  const store = await getStore();
-  await store.set("addnessToggleJsFetchedAt", ts);
-}
 

@@ -1,7 +1,14 @@
 mod tray;
 
+use std::collections::HashMap;
 use tauri::{Emitter, Manager, RunEvent};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut};
+
+const GOOGLE_CLIENT_SECRET: &str = match option_env!("GOOGLE_CLIENT_SECRET") {
+    Some(s) => s,
+    None => "",
+};
+const TOKEN_ENDPOINT: &str = "https://oauth2.googleapis.com/token";
 
 fn show_window(app_handle: &tauri::AppHandle) {
     if let Some(window) = app_handle.get_webview_window("main") {
@@ -145,7 +152,7 @@ async fn addness_fetch_data(app: tauri::AppHandle, js_code: String) -> Result<()
     window.eval("location.reload()").map_err(|e| format!("{e}"))?;
 
     // Wait for page to start loading
-    std::thread::sleep(std::time::Duration::from_secs(3));
+    tokio::time::sleep(std::time::Duration::from_secs(3)).await;
 
     // Re-acquire window handle after reload
     let window = app
@@ -179,6 +186,106 @@ async fn addness_close_sync(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+#[derive(serde::Serialize)]
+struct TokenResponse {
+    access_token: String,
+    refresh_token: Option<String>,
+    expires_in: u64,
+}
+
+#[tauri::command]
+async fn google_exchange_token(
+    code: String,
+    client_id: String,
+    redirect_uri: String,
+) -> Result<TokenResponse, String> {
+    if GOOGLE_CLIENT_SECRET.is_empty() {
+        return Err("GOOGLE_CLIENT_SECRET is not configured. Set it in .env.local or as an environment variable at build time.".to_string());
+    }
+    let mut params = HashMap::new();
+    params.insert("code", code);
+    params.insert("client_id", client_id);
+    params.insert("client_secret", GOOGLE_CLIENT_SECRET.to_string());
+    params.insert("redirect_uri", redirect_uri);
+    params.insert("grant_type", "authorization_code".to_string());
+
+    let client = reqwest::Client::new();
+    let res = client
+        .post(TOKEN_ENDPOINT)
+        .form(&params)
+        .send()
+        .await
+        .map_err(|e| format!("Token exchange request failed: {e}"))?;
+
+    if !res.status().is_success() {
+        let text = res.text().await.unwrap_or_default();
+        return Err(format!("Token exchange failed: {text}"));
+    }
+
+    let data: serde_json::Value = res
+        .json()
+        .await
+        .map_err(|e| format!("Failed to parse token response: {e}"))?;
+
+    Ok(TokenResponse {
+        access_token: data["access_token"]
+            .as_str()
+            .ok_or("Missing access_token")?
+            .to_string(),
+        refresh_token: data["refresh_token"].as_str().map(|s| s.to_string()),
+        expires_in: data["expires_in"]
+            .as_u64()
+            .ok_or("Missing expires_in")?,
+    })
+}
+
+#[tauri::command]
+async fn google_refresh_token(
+    refresh_token: String,
+    client_id: String,
+) -> Result<TokenResponse, String> {
+    if GOOGLE_CLIENT_SECRET.is_empty() {
+        return Err("GOOGLE_CLIENT_SECRET is not configured. Set it in .env.local or as an environment variable at build time.".to_string());
+    }
+    let mut params = HashMap::new();
+    params.insert("refresh_token", refresh_token.clone());
+    params.insert("client_id", client_id);
+    params.insert("client_secret", GOOGLE_CLIENT_SECRET.to_string());
+    params.insert("grant_type", "refresh_token".to_string());
+
+    let client = reqwest::Client::new();
+    let res = client
+        .post(TOKEN_ENDPOINT)
+        .form(&params)
+        .send()
+        .await
+        .map_err(|e| format!("Token refresh request failed: {e}"))?;
+
+    if !res.status().is_success() {
+        let text = res.text().await.unwrap_or_default();
+        return Err(format!("Token refresh failed: {text}"));
+    }
+
+    let data: serde_json::Value = res
+        .json()
+        .await
+        .map_err(|e| format!("Failed to parse token response: {e}"))?;
+
+    Ok(TokenResponse {
+        access_token: data["access_token"]
+            .as_str()
+            .ok_or("Missing access_token")?
+            .to_string(),
+        refresh_token: data["refresh_token"]
+            .as_str()
+            .map(|s| s.to_string())
+            .or(Some(refresh_token)),
+        expires_in: data["expires_in"]
+            .as_u64()
+            .ok_or("Missing expires_in")?,
+    })
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let app = tauri::Builder::default()
@@ -186,6 +293,8 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             google_auth_start,
+            google_exchange_token,
+            google_refresh_token,
             addness_start_sync,
             addness_fetch_data,
             addness_eval_js,

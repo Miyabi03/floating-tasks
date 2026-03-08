@@ -1,12 +1,11 @@
+import { invoke } from "@tauri-apps/api/core";
 import type { GoogleTokens } from "../types/calendar";
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
-const CLIENT_SECRET = import.meta.env.VITE_GOOGLE_CLIENT_SECRET as string;
 
 const REDIRECT_PORT = 19836;
 const REDIRECT_URI = `http://localhost:${REDIRECT_PORT}`;
 const SCOPES = "https://www.googleapis.com/auth/calendar.readonly";
-const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 
 export { REDIRECT_PORT };
 
@@ -22,30 +21,24 @@ export function buildAuthUrl(forceConsent = false): string {
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 }
 
+interface TokenResponse {
+  readonly access_token: string;
+  readonly refresh_token: string | null;
+  readonly expires_in: number;
+}
+
 export async function exchangeCodeForTokens(
   code: string,
 ): Promise<GoogleTokens> {
-  const res = await fetch(TOKEN_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      code,
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      redirect_uri: REDIRECT_URI,
-      grant_type: "authorization_code",
-    }),
+  const data = await invoke<TokenResponse>("google_exchange_token", {
+    code,
+    clientId: CLIENT_ID,
+    redirectUri: REDIRECT_URI,
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Token exchange failed: ${text}`);
-  }
-
-  const data = await res.json();
   return {
     accessToken: data.access_token,
-    refreshToken: data.refresh_token,
+    refreshToken: data.refresh_token ?? "",
     expiresAt: Date.now() + data.expires_in * 1000,
   };
 }
@@ -53,23 +46,11 @@ export async function exchangeCodeForTokens(
 export async function refreshAccessToken(
   refreshToken: string,
 ): Promise<GoogleTokens> {
-  const res = await fetch(TOKEN_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      refresh_token: refreshToken,
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      grant_type: "refresh_token",
-    }),
+  const data = await invoke<TokenResponse>("google_refresh_token", {
+    refreshToken,
+    clientId: CLIENT_ID,
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Token refresh failed: ${text}`);
-  }
-
-  const data = await res.json();
   return {
     accessToken: data.access_token,
     refreshToken: data.refresh_token ?? refreshToken,
