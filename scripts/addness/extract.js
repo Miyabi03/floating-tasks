@@ -1,10 +1,14 @@
 (function() {
-    var MAX_WAIT = 20;
+    var MAX_WAIT = 40;
     var attempts = 0;
 
     function poll() {
         var bodyText = document.body.innerText || '';
-        if (bodyText.length < 50 && attempts < MAX_WAIT) {
+        var pageReady = document.readyState === 'complete';
+        var hasGoalSection = bodyText.indexOf('\u30B4\u30FC\u30EB') >= 0;
+
+        // Wait until: page fully loaded AND goal section rendered AND body has content
+        if ((!pageReady || !hasGoalSection || bodyText.length < 50) && attempts < MAX_WAIT) {
             attempts++;
             setTimeout(poll, 500);
             return;

@@ -114,10 +114,12 @@ async fn addness_start_sync(app: tauri::AppHandle) -> Result<(), String> {
 
 const FALLBACK_JS: &str = r#"
 (function(){
-    var MAX_WAIT=20,attempts=0;
+    var MAX_WAIT=40,attempts=0;
     function poll(){
         var t=document.body.innerText||'';
-        if(t.length<50&&attempts<MAX_WAIT){attempts++;setTimeout(poll,500);return}
+        var ready=document.readyState==='complete';
+        var hasGoal=t.indexOf('\u30B4\u30FC\u30EB')>=0;
+        if((!ready||!hasGoal||t.length<50)&&attempts<MAX_WAIT){attempts++;setTimeout(poll,500);return}
         try{
             var goals=[],idx=0,seen={},lines=t.split(/\n/).map(function(l){return l.trim()}).filter(function(l){return l.length>0});
             var inSec=false;
@@ -148,11 +150,13 @@ async fn addness_fetch_data(app: tauri::AppHandle, js_code: String) -> Result<()
         .get_webview_window("addness-sync")
         .ok_or_else(|| "Addness sync window not found".to_string())?;
 
-    // Reload the page to get latest state from Addness
-    window.eval("location.reload()").map_err(|e| format!("{e}"))?;
+    // Force a cache-busting reload to get latest state from Addness
+    window
+        .eval("location.replace(location.pathname + '?_=' + Date.now())")
+        .map_err(|e| format!("{e}"))?;
 
-    // Wait for page to start loading
-    tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+    // Wait for navigation to start and page to begin loading
+    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
 
     // Re-acquire window handle after reload
     let window = app

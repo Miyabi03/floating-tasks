@@ -30,6 +30,7 @@ export function useAddnessSync(): UseAddnessSyncReturn {
   const [error, setError] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const windowReadyRef = useRef(false);
+  const fetchingRef = useRef(false);
 
   // Ensure WebView exists, creating it if needed (hidden re-creation on restart)
   const ensureWindow = useCallback(async () => {
@@ -78,12 +79,16 @@ export function useAddnessSync(): UseAddnessSyncReturn {
   }, []);
 
   const fetchData = useCallback(async () => {
+    if (fetchingRef.current) return;
+    fetchingRef.current = true;
     try {
       await ensureWindow();
       await invoke("addness_fetch_data", { jsCode: extractJs });
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setIsLoading(false);
+    } finally {
+      fetchingRef.current = false;
     }
   }, [ensureWindow]);
 
