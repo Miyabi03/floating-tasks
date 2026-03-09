@@ -9,7 +9,7 @@ export interface CalendarEvent {
 
 export interface GoogleTokens {
   readonly accessToken: string;
-  readonly refreshToken: string;
+  readonly refreshToken: string | null;
   readonly expiresAt: number;
 }
 

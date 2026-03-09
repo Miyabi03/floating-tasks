@@ -38,7 +38,7 @@ export async function exchangeCodeForTokens(
 
   return {
     accessToken: data.access_token,
-    refreshToken: data.refresh_token ?? "",
+    refreshToken: data.refresh_token ?? null,
     expiresAt: Date.now() + data.expires_in * 1000,
   };
 }
@@ -53,7 +53,7 @@ export async function refreshAccessToken(
 
   return {
     accessToken: data.access_token,
-    refreshToken: data.refresh_token ?? refreshToken,
+    refreshToken: data.refresh_token ?? refreshToken ?? null,
     expiresAt: Date.now() + data.expires_in * 1000,
   };
 }

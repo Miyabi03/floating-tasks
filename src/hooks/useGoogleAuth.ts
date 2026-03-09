@@ -34,15 +34,20 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
         const savedTokens = await loadGoogleTokens();
         if (savedTokens) {
           if (isTokenExpired(savedTokens)) {
-            try {
-              const refreshed = await refreshAccessToken(
-                savedTokens.refreshToken,
-              );
-              await saveGoogleTokens(refreshed);
-              setTokens(refreshed);
-            } catch {
+            if (!savedTokens.refreshToken) {
               await clearGoogleTokens();
               setTokens(null);
+            } else {
+              try {
+                const refreshed = await refreshAccessToken(
+                  savedTokens.refreshToken,
+                );
+                await saveGoogleTokens(refreshed);
+                setTokens(refreshed);
+              } catch {
+                await clearGoogleTokens();
+                setTokens(null);
+              }
             }
           } else {
             setTokens(savedTokens);
@@ -88,11 +93,14 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
   const signIn = useCallback(async () => {
     let newTokens = await startAuthFlow(false);
 
-    // If no refresh_token returned (previously consented), retry with forced consent
+    // If no refresh_token returned (previously consented on another device),
+    // retry with forced consent to obtain a new refresh_token
     if (!newTokens.refreshToken) {
       newTokens = await startAuthFlow(true);
     }
 
+    // If still no refresh_token after forced consent, the token is unusable
+    // for long-term sessions — save anyway but warn
     await saveGoogleTokens(newTokens);
     setTokens(newTokens);
   }, [startAuthFlow]);
@@ -105,6 +113,12 @@ export function useGoogleAuth(): UseGoogleAuthReturn {
   const getValidAccessToken = useCallback(async (): Promise<string | null> => {
     if (!tokens) return null;
     if (!isTokenExpired(tokens)) return tokens.accessToken;
+
+    if (!tokens.refreshToken) {
+      await clearGoogleTokens();
+      setTokens(null);
+      return null;
+    }
 
     try {
       const refreshed = await refreshAccessToken(tokens.refreshToken);
