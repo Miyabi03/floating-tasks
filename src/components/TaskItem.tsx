@@ -186,23 +186,52 @@ export function TaskItem({
         {renderCheckboxArea()}
 
         {isCalendarSection && (
-          <span className="task-type-icon task-type-icon--calendar" title="Calendar">{"\u25C6"}</span>
+          <span className="task-type-icon task-type-icon--calendar" title="Calendar">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 0C8 5 5 8 0 8C5 8 8 11 8 16C8 11 11 8 16 8C11 8 8 5 8 0Z" />
+            </svg>
+          </span>
         )}
 
         {task.calendarEventId?.startsWith("gcal-evt-") && (
-          <span className="task-type-icon task-type-icon--calendar" title="Calendar event">{"\u25C6"}</span>
+          <span className="task-type-icon task-type-icon--calendar" title="Calendar event">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 0C8 5 5 8 0 8C5 8 8 11 8 16C8 11 11 8 16 8C11 8 8 5 8 0Z" />
+            </svg>
+          </span>
         )}
 
         {isAddnessSection && (
-          <span className="task-type-icon task-type-icon--addness" title="Addness">{"\u2605"}</span>
+          <span className="task-type-icon task-type-icon--addness" title="Addness">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 0C8 4 4 8 0 8C4 8 8 12 8 16C8 12 12 8 16 8C12 8 8 4 8 0Z" />
+              <circle cx="3" cy="3" r="1.2" />
+              <circle cx="13" cy="3" r="1.2" />
+              <circle cx="3" cy="13" r="1.2" />
+              <circle cx="13" cy="13" r="1.2" />
+            </svg>
+          </span>
         )}
 
         {task.addnessGoalId?.startsWith("addness-goal-") && (
-          <span className="task-type-icon task-type-icon--addness" title="Addness goal">{"\u2605"}</span>
+          <span className="task-type-icon task-type-icon--addness" title="Addness goal">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 0C8 4 4 8 0 8C4 8 8 12 8 16C8 12 12 8 16 8C12 8 8 4 8 0Z" />
+              <circle cx="3" cy="3" r="1.2" />
+              <circle cx="13" cy="3" r="1.2" />
+              <circle cx="3" cy="13" r="1.2" />
+              <circle cx="13" cy="13" r="1.2" />
+            </svg>
+          </span>
         )}
 
         {task.recurringTemplateId && (
-          <span className="task-type-icon task-type-icon--recurring" title="Recurring task">{"\u21BB"}</span>
+          <span className="task-type-icon task-type-icon--recurring" title="Recurring task">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 1C8 4.5 4.5 8 1 8C4.5 8 8 11.5 8 15C8 11.5 11.5 8 15 8C11.5 8 8 4.5 8 1Z" />
+              <circle cx="8" cy="8" r="2" fill="none" stroke="currentColor" strokeWidth="1.2" />
+            </svg>
+          </span>
         )}
 
         {isEditing ? (

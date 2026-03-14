@@ -102,9 +102,15 @@
 }
 
 .task-type-icon {
-  font-size: 11px;
   flex-shrink: 0;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.task-type-icon svg {
+  display: block;
 }
 
 .task-type-icon--calendar {
